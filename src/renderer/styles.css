@@ -573,9 +573,16 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
   max-width: 92vw;
   max-height: 84vh;
   padding: 0;
+  overflow: hidden;
+}
+
+/* 中身を「見出し / 本文 / ボタン」の縦並びにする指定は、
+   開いているときだけに限定する。
+   dialog は閉じると display:none になるが、こちらで display を指定すると
+   その働きを打ち消してしまい、閉じたはずの中身が画面に残ってしまう。 */
+#guide-dialog[open] {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .guide-header {

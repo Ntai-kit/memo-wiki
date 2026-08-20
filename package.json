@@ -1,6 +1,6 @@
 {
   "name": "memo-wiki",
-  "version": "1.7.1",
+  "version": "1.7.3",
   "description": "リンクと画像をクリック操作で扱えるWiki風メモアプリ",
   "author": "Nez",
   "license": "GPL-3.0-or-later",
@@ -43,8 +43,11 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
       "artifactName": "${productName}-Setup-${version}.${ext}"
     }
   }

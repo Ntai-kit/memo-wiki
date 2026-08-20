@@ -32,6 +32,7 @@ function init(win) {
 
   // 見つかったら自動でダウンロードし、終了時に自動で適用する。
   // (ユーザーが「今すぐ再起動」を押せば、待たずに適用できる)
+  // 終了時の適用も画面を出さずに行われる。
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 
@@ -70,10 +71,20 @@ async function check() {
   }
 }
 
-/** ダウンロード済みの更新を適用してアプリを再起動する */
+/**
+ * ダウンロード済みの更新を適用してアプリを再起動する。
+ *
+ * 引数の意味:
+ *   第1引数 true … セットアップ画面を出さずに静かに適用する
+ *   第2引数 true … 適用後にアプリを自動で起動し直す
+ *
+ * インストーラは初回インストール時には確認画面を出す設定にしてあるが
+ * (誤って入れてしまうのを防ぐため)、更新の適用はここで静かに実行するので
+ * 利用者の操作は「再起動して更新」を押すことだけで済む。
+ */
 function install() {
   if (!app.isPackaged) return;
-  autoUpdater.quitAndInstall();
+  autoUpdater.quitAndInstall(true, true);
 }
 
 /** 画面側に更新の状況を伝える */
