@@ -1,0 +1,33 @@
+# タグ(v1.2.3 の形式)をpushすると、自動でビルドしてGitHub Releasesに公開する。
+#
+# 手元のPCに公開用トークンを置かなくて済むのが利点。
+# GITHUB_TOKEN はGitHubがこのジョブの実行中だけ発行する一時的な鍵で、
+# 他のリポジトリには使えず、ジョブが終われば無効になる。
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write # Releasesにファイルを追加するために必要
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 依存パッケージを入れる
+        run: npm ci
+
+      - name: ビルドしてReleasesに公開する
+        run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

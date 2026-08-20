@@ -1,0 +1,51 @@
+{
+  "name": "memo-wiki",
+  "version": "1.4.0",
+  "description": "リンクと画像をクリック操作で扱えるWiki風メモアプリ",
+  "author": "Nez",
+  "license": "GPL-3.0-or-later",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "release": "electron-builder --win --publish always"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "build": {
+    "appId": "com.nez.memowiki",
+    "productName": "MemoWiki",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Ntai-kit",
+        "repo": "memo-wiki"
+      }
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    }
+  }
+}

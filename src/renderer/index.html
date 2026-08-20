@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; img-src 'self' memo: data: https: http:; style-src 'self' 'unsafe-inline'; frame-src https: http:"
+  />
+  <title>Memo Wiki</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 左サイドバー: 検索とページ一覧 -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <button id="btn-new-page" title="新しいページを作成">+ 新規ページ</button>
+        <button id="btn-map" title="メモ同士の関連をマップで見る">🗺 関連マップ</button>
+      </div>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="検索(タイトル・本文)"
+        autocomplete="off"
+      />
+      <ul id="page-list"></ul>
+    </aside>
+
+    <!-- 右メイン: エディタ -->
+    <main id="editor-pane">
+      <!-- ツールバー: すべてクリック操作で書式を設定する -->
+      <div id="toolbar">
+        <button data-cmd="heading" title="見出しに切り替え">見出し</button>
+        <button data-cmd="bold" title="太字 (Ctrl+B)"><b>B</b></button>
+        <button data-cmd="list" title="箇条書き">・リスト</button>
+        <span class="toolbar-sep"></span>
+        <button id="btn-link" title="文字にリンクを埋め込む (Ctrl+K)。文字を選んでから押すとその文字がリンクになる">🔗 リンク</button>
+        <button id="btn-unlink" title="選択範囲のリンクを解除">リンク解除</button>
+        <button id="btn-image" title="画像ファイルを挿入">🖼 画像</button>
+        <span class="toolbar-sep"></span>
+        <button id="btn-save" title="保存 (Ctrl+S)">💾 保存</button>
+        <button id="btn-delete" title="このページを削除">🗑 削除</button>
+        <span id="save-status"></span>
+      </div>
+
+      <!-- スクロールする領域: トップ画像 → 見出し → 本文 -->
+      <div id="page-scroll">
+        <!-- トップ画像(カバー)。未設定のときは非表示 -->
+        <div id="cover-area" hidden>
+          <img id="cover-image" alt="" />
+          <div id="cover-actions">
+            <button id="btn-cover-change" title="別の画像に差し替える">画像を変更</button>
+            <button id="btn-cover-remove" title="トップ画像を外す">削除</button>
+          </div>
+        </div>
+
+        <div id="page-header">
+          <button id="btn-cover-add" title="ページ上部に大きな画像を追加する">🖼 トップ画像を追加</button>
+          <input id="page-title" type="text" placeholder="ページタイトル" />
+          <input id="page-subtitle" type="text" placeholder="サブタイトル(1行の説明)" />
+        </div>
+
+        <!-- 本文(contenteditable によるWYSIWYG編集) -->
+        <div id="editor" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </main>
+
+    <!-- 右メイン: 関連マップ(エディタと切り替えて表示) -->
+    <section id="map-pane" hidden>
+      <div id="map-toolbar">
+        <button id="btn-map-close">← エディタに戻る</button>
+        <button id="btn-map-reset" title="ノードの配置を計算し直す">配置をリセット</button>
+        <button id="btn-map-fit" title="全体が収まるように表示">全体表示</button>
+        <label class="map-option">
+          <input type="checkbox" id="map-show-isolated" checked />
+          孤立ページも表示
+        </label>
+        <span id="map-info"></span>
+      </div>
+      <div id="map-canvas-wrap">
+        <canvas id="map-canvas"></canvas>
+        <p id="map-empty" hidden>表示できるページがない。</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- リンク設定ダイアログ -->
+  <dialog id="link-dialog">
+    <h3 id="link-dialog-title">リンクを設定</h3>
+    <p class="dialog-note">リンク先のページをクリックで選択してください。</p>
+    <input
+      id="link-page-filter"
+      type="search"
+      placeholder="ページ名で絞り込み"
+      autocomplete="off"
+    />
+    <ul id="link-page-list"></ul>
+    <button id="btn-link-new-page" class="wide">「選択中の文字」で新しいページを作ってリンク</button>
+    <hr />
+    <p class="dialog-note">またはWebサイトへのリンクを作る:</p>
+    <label class="dialog-field">
+      <span>表示する文字</span>
+      <input id="link-text-input" type="text" placeholder="例: Anthropicの公式サイト" />
+    </label>
+    <label class="dialog-field">
+      <span>リンク先URL</span>
+      <input id="link-url-input" type="text" placeholder="https://..." />
+    </label>
+    <div class="dialog-row">
+      <button id="btn-link-external" title="文字にリンクを埋め込む。クリックでブラウザが開く">🔗 文字にリンク</button>
+      <button id="btn-link-card" title="タイトル・説明・画像付きのカードとして挿入">🃏 カード</button>
+      <button id="btn-link-embed" title="動画やページをメモ内に埋め込んで表示">📺 埋め込み</button>
+    </div>
+    <div class="dialog-actions">
+      <span id="link-dialog-status"></span>
+      <button id="btn-link-remove" hidden>リンクを解除</button>
+      <button id="btn-link-cancel">キャンセル</button>
+    </div>
+  </dialog>
+
+  <!-- 自動アップデートの通知バー(画面右下) -->
+  <div id="update-banner" hidden>
+    <span id="update-message"></span>
+    <button id="btn-update-install" hidden>再起動して更新</button>
+    <button id="btn-update-dismiss" title="閉じる">×</button>
+  </div>
+
+  <!-- 画像挿入用の隠しファイル選択 -->
+  <input id="image-file-input" type="file" accept="image/*" hidden />
+  <!-- トップ画像用の隠しファイル選択 -->
+  <input id="cover-file-input" type="file" accept="image/*" hidden />
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

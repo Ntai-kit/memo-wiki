@@ -1,0 +1,10 @@
+# 依存パッケージ(npm install で復元できる)
+node_modules/
+
+# ビルド成果物
+release/
+
+# OS・エディタが作るファイル
+Thumbs.db
+.DS_Store
+.vscode/
