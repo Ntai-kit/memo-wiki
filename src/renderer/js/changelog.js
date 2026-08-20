@@ -13,6 +13,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.7.1',
+    date: '2026-08-20',
+    changes: [
+      '使い方ガイドなどを閉じたあと、画面に残像のような跡が残ることがある問題を直しました',
+    ],
+  },
+  {
     version: '1.7.0',
     date: '2026-08-20',
     changes: [

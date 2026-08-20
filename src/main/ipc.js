@@ -8,7 +8,7 @@
  * 新しい機能を追加するときは、ここにハンドラを1行追加し、
  * preload.js に対応するAPIを1行追加すればよい。
  */
-const { app, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const metadata = require('./metadata');
 
 function register(storage, updater, whatsnew) {
@@ -36,6 +36,14 @@ function register(storage, updater, whatsnew) {
   // 自動アップデート
   ipcMain.handle('update:check', () => updater.check());
   ipcMain.handle('update:install', () => updater.install());
+
+  // ウィンドウの再描画を要求する。
+  // ダイアログを閉じたあと、その部分が描き直されずに残ってしまう環境があるため、
+  // 画面側から明示的に「描き直して」と伝えられるようにしておく。
+  ipcMain.handle('window:repaint', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && !win.isDestroyed()) win.webContents.invalidate();
+  });
 
   // 外部リンクはOSの既定ブラウザで開く
   ipcMain.handle('shell:openExternal', (_e, url) => {

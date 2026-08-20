@@ -17,6 +17,9 @@ export const saveImage = (data, ext) => api.saveImage(data, ext);
 export const fetchMetadata = (url) => api.fetchMetadata(url);
 export const openExternal = (url) => api.openExternal(url);
 
+// ウィンドウの再描画(ダイアログを閉じた跡が残る環境への対策)
+export const repaintWindow = () => api.repaintWindow();
+
 // アプリのバージョン
 export const getVersion = () => api.getVersion();
 

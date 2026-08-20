@@ -24,6 +24,9 @@ contextBridge.exposeInMainWorld('memoAPI', {
   // 外部リンクを既定ブラウザで開く
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
 
+  // ウィンドウの再描画(ダイアログを閉じた跡が残る環境への対策)
+  repaintWindow: () => ipcRenderer.invoke('window:repaint'),
+
   // アプリのバージョン
   getVersion: () => ipcRenderer.invoke('app:version'),
 

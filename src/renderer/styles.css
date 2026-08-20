@@ -755,3 +755,8 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
 
 .whatsnew-footer button:hover { background: #2a55ad; }
 .whatsnew-footer button[hidden] { display: none; }
+
+/* ダイアログを閉じた直後に描画をやり直させるための指定。
+   見た目はほぼ変わらないが、画面全体を描き直させる効果がある
+   (repaint.js から一瞬だけ付けて外す) */
+#app.repainting { opacity: 0.999; }

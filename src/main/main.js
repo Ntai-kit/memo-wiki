@@ -67,6 +67,14 @@ function hardenWindow(win) {
   win.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => {
     callback(false);
   });
+
+  // 5. 不具合を調べるときのために、開発者ツールだけ開けるようにしておく
+  //    (メニューバーを消してあるため、代わりのキー操作を用意する)
+  win.webContents.on('before-input-event', (_event, input) => {
+    const isToggleDevTools =
+      input.control && input.shift && String(input.key).toLowerCase() === 'i';
+    if (isToggleDevTools) win.webContents.toggleDevTools();
+  });
 }
 
 // データ保存先を「%APPDATA%/memo-wiki」に固定する。
