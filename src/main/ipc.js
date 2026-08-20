@@ -8,7 +8,7 @@
  * 新しい機能を追加するときは、ここにハンドラを1行追加し、
  * preload.js に対応するAPIを1行追加すればよい。
  */
-const { ipcMain, shell } = require('electron');
+const { app, ipcMain, shell } = require('electron');
 const metadata = require('./metadata');
 
 function register(storage, updater) {
@@ -25,6 +25,9 @@ function register(storage, updater) {
 
   // リンクカード用のメタデータ取得
   ipcMain.handle('meta:fetch', (_e, url) => metadata.fetchMetadata(url));
+
+  // アプリのバージョン(画面下部の表示に使う)
+  ipcMain.handle('app:version', () => app.getVersion());
 
   // 自動アップデート
   ipcMain.handle('update:check', () => updater.check());

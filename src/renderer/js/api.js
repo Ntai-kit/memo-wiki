@@ -17,6 +17,9 @@ export const saveImage = (data, ext) => api.saveImage(data, ext);
 export const fetchMetadata = (url) => api.fetchMetadata(url);
 export const openExternal = (url) => api.openExternal(url);
 
+// アプリのバージョン
+export const getVersion = () => api.getVersion();
+
 // 自動アップデート
 export const checkForUpdates = () => api.checkForUpdates();
 export const installUpdate = () => api.installUpdate();

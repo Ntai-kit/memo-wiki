@@ -8,7 +8,7 @@
  * 機能そのものの実装は storage.js(ファイル入出力)と
  * ipc.js(レンダラーとの通信)に分割してある。
  */
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 
 const storage = require('./storage');
@@ -75,6 +75,10 @@ app.setPath('userData', path.join(app.getPath('appData'), 'memo-wiki'));
 
 // "memo://" スキームの事前登録(app.ready より前に必要)
 protocol.registerScheme();
+
+// 既定のメニューバー(File / Edit / View / Window / Help)を消す。
+// このアプリの操作はすべて画面内のボタンで行うため不要である。
+Menu.setApplicationMenu(null);
 
 app.whenReady().then(() => {
   // アップデート後の初回起動ならデータを丸ごとバックアップする

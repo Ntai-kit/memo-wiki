@@ -77,6 +77,35 @@ body {
   margin-top: 2px;
 }
 
+/* サイドバー下部: バージョン表示と更新確認 */
+#sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#app-version {
+  font-size: 11px;
+  color: #888;
+}
+
+#btn-check-update {
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #555;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+#btn-check-update:hover:not(:disabled) { background: #eef1fb; color: var(--text); }
+#btn-check-update:disabled { opacity: 0.5; cursor: default; }
+
 /* ---------- エディタ ---------- */
 
 #editor-pane {

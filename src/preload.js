@@ -24,6 +24,9 @@ contextBridge.exposeInMainWorld('memoAPI', {
   // 外部リンクを既定ブラウザで開く
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
 
+  // アプリのバージョン
+  getVersion: () => ipcRenderer.invoke('app:version'),
+
   // 自動アップデート
   checkForUpdates: () => ipcRenderer.invoke('update:check'),
   installUpdate: () => ipcRenderer.invoke('update:install'),

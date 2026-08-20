@@ -1,6 +1,6 @@
 {
   "name": "memo-wiki",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "リンクと画像をクリック操作で扱えるWiki風メモアプリ",
   "author": "Nez",
   "license": "GPL-3.0-or-later",
@@ -23,7 +23,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "Ntai-kit",
+        "owner": "GITHUB_USERNAME",
         "repo": "memo-wiki"
       }
     ],
