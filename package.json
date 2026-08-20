@@ -23,7 +23,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "GITHUB_USERNAME",
+        "owner": "Ntai-kit",
         "repo": "memo-wiki"
       }
     ],
