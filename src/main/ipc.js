@@ -11,7 +11,7 @@
 const { app, ipcMain, shell } = require('electron');
 const metadata = require('./metadata');
 
-function register(storage, updater) {
+function register(storage, updater, whatsnew) {
   // ページ操作
   ipcMain.handle('pages:list', () => storage.listPages());
   ipcMain.handle('pages:load', (_e, id) => storage.loadPage(id));
@@ -28,6 +28,10 @@ function register(storage, updater) {
 
   // アプリのバージョン(画面下部の表示に使う)
   ipcMain.handle('app:version', () => app.getVersion());
+
+  // 更新内容の表示に使う「前回のバージョン」
+  ipcMain.handle('whatsnew:previous', () => whatsnew.getPreviousVersion());
+  ipcMain.handle('whatsnew:markSeen', () => whatsnew.markSeen(app.getVersion()));
 
   // 自動アップデート
   ipcMain.handle('update:check', () => updater.check());

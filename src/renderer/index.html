@@ -28,7 +28,10 @@
       <!-- サイドバー下部: バージョン表示と手動の更新確認 -->
       <div id="sidebar-footer">
         <span id="app-version" title="このアプリのバージョン"></span>
-        <button id="btn-check-update" title="新しいバージョンが出ていないか確認する">更新を確認</button>
+        <div class="footer-buttons">
+          <button id="btn-guide" title="使い方ガイドを開く">?</button>
+          <button id="btn-check-update" title="新しいバージョンが出ていないか確認する">更新を確認</button>
+        </div>
       </div>
     </aside>
 
@@ -89,6 +92,131 @@
       </div>
     </section>
   </div>
+
+  <!-- 更新内容のお知らせ(更新後の初回起動で自動的に開く) -->
+  <dialog id="whatsnew-dialog">
+    <div class="whatsnew-header">
+      <span class="whatsnew-badge">更新しました</span>
+      <h2 id="whatsnew-version"></h2>
+      <span id="whatsnew-date"></span>
+    </div>
+
+    <div class="whatsnew-body">
+      <p class="whatsnew-lead">今回の変更点をお知らせします。</p>
+      <ul id="whatsnew-list"></ul>
+    </div>
+
+    <div class="whatsnew-footer">
+      <span id="whatsnew-progress" hidden></span>
+      <button id="btn-whatsnew-next">次へ</button>
+      <button id="btn-whatsnew-close" hidden>閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- 使い方ガイド(「?」ボタンで開く。メモではなくアプリに組み込みの説明) -->
+  <dialog id="guide-dialog">
+    <div class="guide-header">
+      <h2>Memo Wiki の使い方</h2>
+      <button id="btn-guide-close" title="閉じる">×</button>
+    </div>
+
+    <div class="guide-body">
+      <p class="guide-lead">
+        Wikipedia のように、メモ同士をリンクでつなげられるメモ帳です。<br />
+        覚える記号や書き方はありません。すべてボタンを押すだけでできます。
+      </p>
+
+      <h3>メモを書く</h3>
+      <p>
+        左上の <b>「+ 新規ページ」</b> で新しいメモを作ります。
+        上の欄にタイトル、その下に本文を書きます。
+        タイトルの下の細い欄に一行の説明（サブタイトル）を書いておくと、
+        左の一覧に表示されて見分けやすくなります。
+      </p>
+
+      <h3>メモ同士をつなぐ</h3>
+      <ol>
+        <li>つなげたい文字をドラッグして選びます</li>
+        <li>上の <b>「🔗 リンク」</b> を押します</li>
+        <li>出てきた一覧から、つなげたいメモをクリックします</li>
+      </ol>
+      <p>
+        まだ無いメモにつなぎたいときは、
+        <b>「「〇〇」で新しいページを作ってリンク」</b> を押すと、その名前のメモが同時にできます。
+        できたリンクをクリックすると、そのメモに移動します。
+      </p>
+
+      <h3>Webサイトのリンクを貼る</h3>
+      <p>同じ「🔗 リンク」の画面の下半分で、「表示する文字」と「リンク先URL」を入れて貼り方を選びます。</p>
+      <table class="guide-table">
+        <tr><th>🔗 文字にリンク</th><td>文字が青くなり、クリックするとブラウザで開きます</td></tr>
+        <tr><th>🃏 カード</th><td>サイトのタイトル・説明・画像を自動で取ってきて、カードの形で貼ります</td></tr>
+        <tr><th>📺 埋め込み</th><td>ページや動画をメモの中に表示します。YouTubeなどはそのまま再生できます</td></tr>
+      </table>
+      <p>
+        貼ったあとで直したいときは、そのリンクを
+        <b>Ctrl を押しながらクリック</b> してください。
+        文字やリンク先を変えたり、リンクだけ外したりできます。
+      </p>
+
+      <h3>画像を入れる</h3>
+      <ul>
+        <li>上の <b>「🖼 画像」</b> を押してファイルを選ぶ</li>
+        <li>画像をコピーして本文で <b>Ctrl + V</b>（スクリーンショットもそのまま貼れます）</li>
+        <li>画像ファイルを本文へドラッグして落とす</li>
+      </ul>
+
+      <h3>ページの一番上に大きな画像を置く</h3>
+      <p>
+        タイトルの上の <b>「🖼 トップ画像を追加」</b> から選びます。
+        置いたあとは画像の上にマウスを乗せると、右下に「画像を変更」「削除」が出ます。
+      </p>
+
+      <h3>つながりを図で見る</h3>
+      <p>左上の <b>「🗺 関連マップ」</b> を押すと、メモ同士のつながりが図で表示されます。</p>
+      <ul>
+        <li><b>丸</b> がひとつのメモです。クリックするとそのメモが開きます</li>
+        <li><b>矢印</b> がリンクの向きです</li>
+        <li>丸が<b>大きいほど</b>たくさんつながっています</li>
+        <li><b>灰色の丸</b>は、まだどこともつながっていないメモです</li>
+      </ul>
+      <p>丸はドラッグで動かせます。ホイールで拡大・縮小、何もない場所をドラッグすると全体が動きます。</p>
+
+      <h3>探す・保存する</h3>
+      <p>
+        左上の検索欄に文字を入れると、タイトルと本文の両方から探します。<br />
+        保存は別のメモに移るときに自動で行われます。すぐ保存したいときは
+        <b>「💾 保存」</b> か <b>Ctrl + S</b> です。
+      </p>
+
+      <h3>キーボード操作</h3>
+      <table class="guide-table">
+        <tr><th>Ctrl + S</th><td>保存する</td></tr>
+        <tr><th>Ctrl + K</th><td>リンクの画面を開く</td></tr>
+        <tr><th>Ctrl + V</th><td>貼り付ける（画像もそのまま入ります）</td></tr>
+        <tr><th>Ctrl + クリック</th><td>貼ってあるリンクを編集する</td></tr>
+      </table>
+
+      <h3>メモはどこに保存される?</h3>
+      <p>
+        あなたのパソコンの中だけに保存され、どこにも送信されません。
+        場所はエクスプローラーのアドレス欄に
+        <code>%APPDATA%\memo-wiki\data</code> と入れると開けます。
+        このフォルダをコピーすれば、それがそのままバックアップになります。
+      </p>
+
+      <h3>更新について</h3>
+      <p>
+        新しいバージョンが出ると、アプリが自分で見つけて用意します。
+        準備ができると右下に案内が出るので <b>「再起動して更新」</b> を押すだけです。
+        押さなくても、次にアプリを閉じたときに自動で新しくなります。
+      </p>
+    </div>
+
+    <div class="guide-footer">
+      <button id="btn-guide-ok">閉じる</button>
+    </div>
+  </dialog>
 
   <!-- リンク設定ダイアログ -->
   <dialog id="link-dialog">

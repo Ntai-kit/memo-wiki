@@ -27,6 +27,10 @@ contextBridge.exposeInMainWorld('memoAPI', {
   // アプリのバージョン
   getVersion: () => ipcRenderer.invoke('app:version'),
 
+  // 更新内容の表示
+  previousVersion: () => ipcRenderer.invoke('whatsnew:previous'),
+  markVersionSeen: () => ipcRenderer.invoke('whatsnew:markSeen'),
+
   // 自動アップデート
   checkForUpdates: () => ipcRenderer.invoke('update:check'),
   installUpdate: () => ipcRenderer.invoke('update:install'),

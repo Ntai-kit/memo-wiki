@@ -1,0 +1,109 @@
+/**
+ * changelog.js — 更新内容の一覧(このアプリの変更履歴)
+ *
+ * 責務:
+ *   - バージョンごとの更新内容を持つ
+ *   - 「前回のバージョン」と「今のバージョン」の間に入る更新を古い順に返す
+ *
+ * 新しいバージョンを出すときは、この配列の先頭に1つ足すだけでよい。
+ * 書き方の目安:
+ *   - 利用者が読んで分かる言葉で書く(「storage.jsを分割」ではなく「動作が軽くなりました」)
+ *   - 1バージョンあたり3〜6項目まで。細かい修正はまとめる
+ */
+
+export const CHANGELOG = [
+  {
+    version: '1.7.0',
+    date: '2026-08-20',
+    changes: [
+      'アプリを更新したときに、更新内容をお知らせするようにしました',
+      'バージョンをとばして更新した場合は、古い順に順番にお知らせします',
+    ],
+  },
+  {
+    version: '1.6.0',
+    date: '2026-08-20',
+    changes: [
+      '使い方ガイドを追加しました。画面左下の「?」ボタンからいつでも開けます',
+      '説明用の「はじめに」メモを自動で作らないようにしました（ガイドに置き換わりました）',
+    ],
+  },
+  {
+    version: '1.5.0',
+    date: '2026-08-20',
+    changes: [
+      '画面上部のメニューバー（File / Edit など）を非表示にしました',
+      '画面左下に、今お使いのバージョンを表示するようにしました',
+      '「更新を確認」ボタンを追加し、その場で最新版を確認できるようにしました',
+    ],
+  },
+  {
+    version: '1.4.0',
+    date: '2026-08-20',
+    changes: [
+      'Webページからコピーした内容を、安全に整理してから貼り付けるようにしました',
+      'アプリ全体の安全対策を強化しました',
+    ],
+  },
+  {
+    version: '1.3.0',
+    date: '2026-08-20',
+    changes: [
+      '新しいバージョンを自動で見つけて更新できるようにしました',
+    ],
+  },
+  {
+    version: '1.2.0',
+    date: '2026-08-20',
+    changes: [
+      '好きな文字にWebサイトのリンクを埋め込めるようにしました',
+      '貼ったリンクを Ctrl+クリック で編集・解除できるようにしました',
+    ],
+  },
+  {
+    version: '1.1.0',
+    date: '2026-08-20',
+    changes: [
+      'ページの一番上に大きな画像（トップ画像）を置けるようにしました',
+      'タイトルの下に一行の説明（サブタイトル）を書けるようにしました',
+      'メモ同士のつながりを図で見られる「関連マップ」を追加しました',
+    ],
+  },
+  {
+    version: '1.0.0',
+    date: '2026-08-20',
+    changes: ['最初のバージョンです'],
+  },
+];
+
+/**
+ * 2つのバージョンを比べる(純粋関数)。
+ * @returns {number} a が古ければ -1、同じなら 0、新しければ 1
+ */
+export function compareVersions(a, b) {
+  const pa = String(a).split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = String(b).split('.').map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const diff = (pa[i] || 0) - (pb[i] || 0);
+    if (diff !== 0) return diff < 0 ? -1 : 1;
+  }
+  return 0;
+}
+
+/**
+ * 「前回のバージョンより後、今のバージョンまで」の更新内容を古い順に返す。
+ *
+ * 例: 1.4.0 から 1.7.0 に更新した場合 → 1.5.0, 1.6.0, 1.7.0 の3件を古い順で返す。
+ *
+ * @param {string|null} previous 前回のバージョン(新規インストールなら null)
+ * @param {string} current 今のバージョン
+ * @returns {Array<{version: string, date?: string, changes: string[]}>}
+ */
+export function entriesBetween(previous, current) {
+  if (!previous) return []; // 新規インストールでは更新内容を見せない
+  return CHANGELOG.filter(
+    (entry) =>
+      compareVersions(entry.version, previous) > 0 &&
+      compareVersions(entry.version, current) <= 0
+  ).sort((a, b) => compareVersions(a.version, b.version)); // 古い順
+}

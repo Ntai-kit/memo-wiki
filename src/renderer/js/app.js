@@ -6,7 +6,7 @@
  *   - ページの読み込み・保存・削除・新規作成
  *   - エディタ画面と関連マップ画面の切り替え
  *   - 各モジュール(editor / cover / links / images / paste / pages / search /
- *     graph / updates)の初期化と連携
+ *     graph / updates / guide / whatsnew)の初期化と連携
  *
  * 個々の機能の詳細は各モジュールに任せ、ここでは
  * 「何をどの順番でつなぐか」だけを書く。
@@ -21,6 +21,8 @@ import * as pages from './pages.js';
 import * as search from './search.js';
 import * as graph from './graph.js';
 import * as updates from './updates.js';
+import * as guide from './guide.js';
+import * as whatsnew from './whatsnew.js';
 
 const titleInput = document.getElementById('page-title');
 const saveStatus = document.getElementById('save-status');
@@ -128,30 +130,6 @@ async function showMap() {
   await graph.show(currentPageId);
 }
 
-/* ---------- 初回起動時の使い方ページ ---------- */
-
-async function createWelcomePageIfEmpty() {
-  const existing = await api.listPages();
-  if (existing.length > 0) return;
-  await api.savePage(null, {
-    title: 'はじめに',
-    subtitle: 'このアプリの使い方',
-    html:
-      '<h2>Memo Wiki の使い方</h2>' +
-      '<p>このアプリはWikipediaのように、ページ同士をリンクでつなげられるメモ帳です。</p>' +
-      '<ul>' +
-      '<li><b>ページ同士のリンク:</b> 文字を選択して「🔗 リンク」ボタン(Ctrl+K)を押し、リンク先ページをクリックで選びます。</li>' +
-      '<li><b>Webサイトのリンク:</b> 同じダイアログの「表示する文字」と「リンク先URL」を入れて「🔗 文字にリンク」を押すと、その文字にリンクが埋め込まれます。文字を選んでから開けば選択した文字が初期値になります。カード表示や埋め込み(YouTubeなどの動画はメモ内で再生可能)も選べます。</li>' +
-      '<li><b>リンクの編集:</b> 貼ったリンクを Ctrl+クリック すると、表示文字やリンク先を変更したり解除したりできます。</li>' +
-      '<li><b>画像:</b> 「🖼 画像」ボタンのほか、Ctrl+V での貼り付けやドラッグ&ドロップでも挿入できます。</li>' +
-      '<li><b>トップ画像・サブタイトル:</b> タイトルの上の「🖼 トップ画像を追加」でページ上部に大きな画像を置けます。タイトル下の欄には1行の説明を書けます。</li>' +
-      '<li><b>関連マップ:</b> 左上の「🗺 関連マップ」で、ページ同士のつながりを図として見られます。丸をクリックするとそのページが開きます。</li>' +
-      '<li><b>保存:</b> 「💾 保存」ボタンか Ctrl+S。別のページに移動するときは自動保存されます。</li>' +
-      '<li><b>検索:</b> 左上の検索ボックスでタイトルと本文を検索できます。</li>' +
-      '</ul>',
-  });
-}
-
 /* ---------- 起動処理 ---------- */
 
 async function main() {
@@ -164,6 +142,8 @@ async function main() {
   links.init({ navigate: openPage, createPage: createPageByTitle });
   graph.init(openPage); // マップのノードをクリックしたらそのページを開く
   updates.init(); // 自動アップデートの通知バー
+  guide.init(); // 「?」ボタンで開く使い方ガイド
+  whatsnew.init(); // 更新内容のお知らせ
 
   // ツールバー: 書式ボタン(data-cmd属性で共通処理)
   for (const btn of document.querySelectorAll('#toolbar button[data-cmd]')) {
@@ -192,11 +172,21 @@ async function main() {
     }
   });
 
-  // 初回起動なら使い方ページを作り、最新のページを開く
-  await createWelcomePageIfEmpty();
+  // 最後に編集したページを開く。
+  // まだ1つも無ければ(初回起動)、使い方ガイドを出す
   await pages.refresh();
   const all = await api.listPages();
   if (all.length > 0) await openPage(all[0].id);
+
+  // 更新直後なら変更点をお知らせする
+  const showedNotes = await whatsnew.showIfUpdated();
+
+  // メモが1つも無ければ使い方ガイドを出す
+  // (更新のお知らせを出したときは重ならないよう見送る)
+  if (all.length === 0) {
+    if (!showedNotes) guide.open();
+    titleInput.focus();
+  }
 }
 
 main();

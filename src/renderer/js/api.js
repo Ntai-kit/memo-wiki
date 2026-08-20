@@ -20,6 +20,10 @@ export const openExternal = (url) => api.openExternal(url);
 // アプリのバージョン
 export const getVersion = () => api.getVersion();
 
+// 更新内容の表示
+export const previousVersion = () => api.previousVersion();
+export const markVersionSeen = () => api.markVersionSeen();
+
 // 自動アップデート
 export const checkForUpdates = () => api.checkForUpdates();
 export const installUpdate = () => api.installUpdate();

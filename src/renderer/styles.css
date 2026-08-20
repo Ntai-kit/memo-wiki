@@ -106,6 +106,29 @@ body {
 #btn-check-update:hover:not(:disabled) { background: #eef1fb; color: var(--text); }
 #btn-check-update:disabled { opacity: 0.5; cursor: default; }
 
+.footer-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 使い方ガイドを開く「?」ボタン */
+#btn-guide {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  color: #fff;
+  background: #9aa0ad;
+  border: none;
+  border-radius: 50%;
+}
+
+#btn-guide:hover { background: var(--accent); }
+
 /* ---------- エディタ ---------- */
 
 #editor-pane {
@@ -542,3 +565,193 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
   line-height: 1;
   padding: 4px 6px;
 }
+
+/* ---------- 使い方ガイド ---------- */
+
+#guide-dialog {
+  width: 660px;
+  max-width: 92vw;
+  max-height: 84vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: #fbfbfd;
+  flex-shrink: 0;
+}
+
+.guide-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+#btn-guide-close {
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+#btn-guide-close:hover { color: var(--text); }
+
+.guide-body {
+  overflow-y: auto;
+  padding: 4px 22px 18px;
+  line-height: 1.8;
+}
+
+.guide-lead {
+  padding: 12px 14px;
+  background: #eef1fb;
+  border-radius: 6px;
+}
+
+.guide-body h3 {
+  margin: 22px 0 6px;
+  padding-bottom: 4px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.guide-body p { margin: 6px 0; }
+.guide-body ul,
+.guide-body ol { margin: 6px 0; padding-left: 22px; }
+.guide-body li { margin: 3px 0; }
+
+.guide-body code {
+  padding: 1px 5px;
+  background: #f0f0f4;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.guide-table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.guide-table th,
+.guide-table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.guide-table th {
+  width: 34%;
+  background: #fbfbfd;
+  white-space: nowrap;
+}
+
+.guide-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+#btn-guide-ok {
+  padding: 6px 18px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: white;
+}
+
+#btn-guide-ok:hover { background: #eef1fb; }
+
+/* ---------- 更新内容のお知らせ ---------- */
+
+#whatsnew-dialog {
+  width: 460px;
+  max-width: 92vw;
+  padding: 0;
+  overflow: hidden;
+}
+
+.whatsnew-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  background: #fbfbfd;
+}
+
+.whatsnew-badge {
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 10px;
+}
+
+.whatsnew-header h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+#whatsnew-date {
+  margin-left: auto;
+  font-size: 11px;
+  color: #888;
+}
+
+.whatsnew-body { padding: 14px 20px 18px; }
+
+.whatsnew-lead {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+#whatsnew-list {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+#whatsnew-list li { margin: 4px 0; }
+
+.whatsnew-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+
+#whatsnew-progress {
+  margin-right: auto;
+  font-size: 12px;
+  color: #888;
+}
+
+#whatsnew-progress[hidden] { display: none; }
+
+.whatsnew-footer button {
+  padding: 6px 18px;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.whatsnew-footer button:hover { background: #2a55ad; }
+.whatsnew-footer button[hidden] { display: none; }

@@ -34,6 +34,7 @@ src/
 │   ├── protocol.js       # memo:// スキームで画像を配信
 │   ├── metadata.js       # リンクカード用のOGPメタデータ取得
 │   ├── backup.js         # アップデート時の自動バックアップ
+│   ├── whatsnew.js       # 前回起動時のバージョンの記録
 │   └── updater.js        # 自動アップデート(GitHub Releasesの確認とダウンロード)
 ├── preload.js            # レンダラーに公開する安全なAPI(window.memoAPI)
 └── renderer/             # 画面側
@@ -53,6 +54,9 @@ src/
         ├── sanitize.js   # 貼り付けHTMLの浄化(危険な要素を除去)
         ├── pages.js      # サイドバーのページ一覧
         ├── search.js     # 検索ボックス
+        ├── guide.js      # 使い方ガイドの開閉(本文は index.html 内)
+        ├── changelog.js  # 更新内容の一覧と、表示すべきバージョンの判定
+        ├── whatsnew.js   # 更新内容のお知らせダイアログ
         └── updates.js    # バージョン表示と更新の通知バー
 ```
 
@@ -84,6 +88,29 @@ src/
 
 配置計算(`graph-layout.js`)は画面に依存しない純粋な計算なので、
 描画を変えずにレイアウトだけ差し替えることもできる。
+
+### 使い方ガイドの文面を直す
+
+ガイドの本文は `renderer/index.html` の `<dialog id="guide-dialog">` に直接書いてある。
+メモとして保存されるわけではないので、利用者が編集・削除することはなく、
+検索結果や関連マップにも現れない。文面を直すときはそのダイアログ部分だけを編集すればよい。
+
+なお、メモが1件も無いとき(初回起動)はこのガイドが自動で開く。
+
+### 更新内容のお知らせ
+
+更新後の初回起動で、前回のバージョンから今回までの変更点を古い順に1つずつ表示する。
+
+- 文面: `renderer/js/changelog.js` の `CHANGELOG` 配列(新しい順に並べる)
+- 表示: `renderer/js/whatsnew.js`
+- 「前回のバージョン」の記録: `main/whatsnew.js`(`userData/last-seen-version.txt`)
+
+**リリースのたびに `CHANGELOG` の先頭へ1件追加すること。**
+利用者が読む文面なので、内部の用語ではなく「何ができるようになったか」で書く。
+
+複数バージョンをとばして更新した場合(例: 1.4.0 → 1.7.0)は、
+1.5.0 → 1.6.0 → 1.7.0 の順に「次へ」で送りながら表示される。
+新規インストール時は何も表示せず、記録だけを行う。
 
 ### メニューバーについて
 
@@ -150,10 +177,10 @@ npm run dist   # 公開せずに手元でexeを作る(release/ に出力)
 バージョンを上げてタグを push するだけでよい。
 
 ```bash
-# package.json の "version" を上げてから
-git add -A && git commit -m "v1.5.0"
-git tag v1.5.0
-git push && git push origin v1.5.0
+# package.json の "version" を上げ、changelog.js に1件追加してから
+git add -A && git commit -m "使い方ガイドを追加"
+git tag v1.7.0
+git push && git push origin v1.7.0
 ```
 
 GitHubのWindows環境でビルドが走り、Releasesに下書きができる。

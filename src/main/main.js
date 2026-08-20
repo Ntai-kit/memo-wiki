@@ -16,6 +16,7 @@ const ipc = require('./ipc');
 const protocol = require('./protocol');
 const backup = require('./backup');
 const updater = require('./updater');
+const whatsnew = require('./whatsnew');
 
 /** メインウィンドウを生成する(生成したウィンドウを返す) */
 function createWindow() {
@@ -81,12 +82,16 @@ protocol.registerScheme();
 Menu.setApplicationMenu(null);
 
 app.whenReady().then(() => {
+  // 「前回のバージョン」を先に読み取る
+  // (backup がその記録を書き換える前に読む必要がある)
+  whatsnew.init(app.getPath('userData'));
+
   // アップデート後の初回起動ならデータを丸ごとバックアップする
   backup.runIfVersionChanged(app.getPath('userData'), app.getVersion());
 
   storage.init(app.getPath('userData')); // 保存先フォルダの準備
   protocol.registerHandler(storage);     // memo:// で画像を配信
-  ipc.register(storage, updater);        // IPCハンドラの登録
+  ipc.register(storage, updater, whatsnew); // IPCハンドラの登録
   updater.init(createWindow());          // ウィンドウ生成 + 自動アップデート開始
 
   // macOS: Dockクリックでウィンドウを再生成
