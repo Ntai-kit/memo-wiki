@@ -17,6 +17,7 @@ const protocol = require('./protocol');
 const backup = require('./backup');
 const updater = require('./updater');
 const whatsnew = require('./whatsnew');
+const embedCompat = require('./embed-compat');
 
 /** メインウィンドウを生成する(生成したウィンドウを返す) */
 function createWindow() {
@@ -32,6 +33,7 @@ function createWindow() {
   });
 
   hardenWindow(win);
+  embedCompat.apply(win.webContents.session); // 埋め込み動画を再生できるようにする
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   return win;
 }

@@ -553,6 +553,13 @@ dialog h3 { margin-top: 0; }
   border-radius: 4px;
 }
 
+.dialog-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.5;
+}
+
 #btn-link-remove {
   padding: 5px 10px;
   cursor: pointer;

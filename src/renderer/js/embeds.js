@@ -47,22 +47,54 @@ export function buildEmbedHTML(url) {
   const embedUrl = toEmbedUrl(url);
   const isVideo = embedUrl !== url; // 変換されたら動画サイトとみなす
 
-  // referrerpolicy と sandbox の指定について:
-  //   このアプリの画面はファイルとして読み込まれるため、
-  //   何も指定しないと「どこから埋め込まれたか」の情報が相手に届かず、
-  //   YouTube が「動画プレーヤーの設定エラー(エラー153)」を出すことがある。
-  //   strict-origin-when-cross-origin を指定して必要な情報だけを渡す。
-  //   sandbox は、動画の再生に必要な最小限の許可だけを与えている。
+  // sandbox の扱いについて:
+  //   知らないサイトを埋め込むときは sandbox で権限を絞る。
+  //   一方、下の EMBED_RULES で変換できた「素性の分かっている動画サイト」は
+  //   sandbox を付けない。制限された枠の中では再生を拒否する配信元があるためである
+  //   (それでも CSP と allow 属性による制限は効いている)。
+  const sandbox = isVideo
+    ? ''
+    : 'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups ' +
+      'allow-popups-to-escape-sandbox allow-forms" ';
+
   return (
     `<span class="embed-wrapper${isVideo ? ' video' : ''}" contenteditable="false">` +
     `<iframe src="${escapeHTML(embedUrl)}" ` +
-    `sandbox="allow-scripts allow-same-origin allow-presentation allow-popups ` +
-    `allow-popups-to-escape-sandbox allow-forms" ` +
+    sandbox +
     `allow="fullscreen; autoplay; encrypted-media; picture-in-picture" ` +
     `referrerpolicy="strict-origin-when-cross-origin" ` +
     `loading="lazy"></iframe>` +
     `</span><p><br></p>`
   );
+}
+
+/**
+ * 入力から埋め込み用のURLを取り出す(純粋関数)。
+ *
+ * 次のどれを貼っても使えるようにするためのもの:
+ *   - 動画ページのURL          https://www.youtube.com/watch?v=XXXX
+ *   - 埋め込み用のURL          https://www.youtube.com/embed/XXXX
+ *   - サイトが配る埋め込みコード <iframe src="https://..." ...></iframe>
+ *
+ * YouTubeの「共有 → 埋め込む」で得られるコードをそのまま貼れる。
+ *
+ * @param {string} input 貼り付けられた文字列
+ * @returns {string} 取り出したURL(見つからなければ入力をそのまま返す)
+ */
+export function extractUrl(input) {
+  const text = String(input).trim();
+
+  // <iframe src="..."> の形なら src を取り出す
+  const iframeSrc = text.match(/<iframe[^>]*\ssrc\s*=\s*("([^"]+)"|'([^']+)')/i);
+  if (iframeSrc) return (iframeSrc[2] ?? iframeSrc[3]).trim();
+
+  // それ以外にHTMLが混ざっている場合は、最初のURLを拾う
+  if (text.includes('<')) {
+    const anyUrl = text.match(/https?:\/\/[^\s"'<>]+/);
+    if (anyUrl) return anyUrl[0];
+  }
+
+  return text;
 }
 
 /**

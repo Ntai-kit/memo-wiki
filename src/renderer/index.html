@@ -157,6 +157,11 @@
         <tr><th>📺 埋め込み</th><td>ページや動画をメモの中に表示します。YouTubeなどはそのまま再生できます</td></tr>
       </table>
       <p>
+        動画がうまく表示されないときは、YouTubeの
+        <b>「共有 → 埋め込む」</b> で出てくる &lt;iframe …&gt; のコードをコピーして、
+        「リンク先URL」の欄にそのまま貼り付けてみてください。
+      </p>
+      <p>
         貼ったあとで直したいときは、そのリンクを
         <b>Ctrl を押しながらクリック</b> してください。
         文字やリンク先を変えたり、リンクだけ外したりできます。
@@ -249,8 +254,16 @@
     </label>
     <label class="dialog-field">
       <span>リンク先URL</span>
-      <input id="link-url-input" type="text" placeholder="https://..." />
+      <input
+        id="link-url-input"
+        type="text"
+        placeholder="https://... （埋め込みコードを貼ってもOK）"
+      />
     </label>
+    <p class="dialog-hint">
+      動画は「共有 → 埋め込む」で出てくる &lt;iframe …&gt; のコードを、
+      そのまま貼り付けることもできます。
+    </p>
     <div class="dialog-row">
       <button id="btn-link-external" title="文字にリンクを埋め込む。クリックでブラウザが開く">🔗 文字にリンク</button>
       <button id="btn-link-card" title="タイトル・説明・画像付きのカードとして挿入">🃏 カード</button>

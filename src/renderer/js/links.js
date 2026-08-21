@@ -7,6 +7,7 @@
  *       ・選択中の文字で新規ページを作ってリンクを張る
  *       ・任意の文字にWebサイトのURLを埋め込む(表示する文字は自由に指定できる)
  *       ・URLを「文字リンク / カード / 埋め込み」として挿入する
+ *       ・動画サイトの「埋め込みコード」を貼っても、中のURLを取り出して使う
  *   - すでに張ったリンクの編集(表示文字・リンク先の変更、リンクの解除)
  *   - 本文中のリンククリック時の動作
  *       ・内部リンク → そのページへ移動
@@ -178,7 +179,9 @@ function insertInternalLink(pageId, pageTitle) {
  * http(s)以外や空欄のときはメッセージを出して何もしない。
  */
 function withValidUrl(action) {
-  let url = urlInput.value.trim();
+  // 「共有 → 埋め込む」で得られる <iframe …> のコードを貼られても
+  // 中のURLを取り出して使えるようにする
+  let url = embeds.extractUrl(urlInput.value);
   if (url && !/^https?:\/\//.test(url)) url = `https://${url}`; // スキーム省略を補う
   try {
     new URL(url);
