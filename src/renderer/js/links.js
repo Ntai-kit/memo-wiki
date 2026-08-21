@@ -34,6 +34,7 @@
 import * as api from './api.js';
 import * as editor from './editor.js';
 import * as embeds from './embeds.js';
+import * as videos from './videos.js';
 
 const dialog = document.getElementById('link-dialog');
 const filterInput = document.getElementById('link-page-filter');
@@ -48,8 +49,8 @@ const externalBtn = document.getElementById('btn-link-external');
 
 const textField = document.getElementById('link-text-field');
 
-/** カード・埋め込みを表すCSSクラス(ひとかたまりとして扱う要素) */
-const BLOCK_SELECTOR = '.link-card, .embed-wrapper';
+/** カード類・埋め込みを表すCSSクラス(ひとかたまりとして扱う要素) */
+const BLOCK_SELECTOR = '.link-card, .video-card, .embed-wrapper';
 
 let allPages = []; // ダイアログ表示中のページ一覧キャッシュ
 let onNavigate = null; // 内部リンククリック時にページを開くコールバック
@@ -156,8 +157,7 @@ function applyDialogMode() {
 
   if (editingBlock) {
     // カード・埋め込みの編集: 表示文字は使わないので隠す
-    const isCard = editingBlock.classList.contains('link-card');
-    dialogTitle.textContent = isCard ? 'カードを編集' : '埋め込みを編集';
+    dialogTitle.textContent = blockLabel(editingBlock);
     urlInput.value = blockUrl(editingBlock);
     textInput.value = '';
     externalBtn.textContent = '🔗 文字リンクに変更';
@@ -186,11 +186,18 @@ function applyDialogMode() {
     : '新しいページを作ってリンク';
 }
 
+/** 編集中のかたまりが何なのかをダイアログの見出しにする */
+function blockLabel(block) {
+  if (block.classList.contains('link-card')) return 'カードを編集';
+  if (block.classList.contains('video-card')) return '動画を編集';
+  return '埋め込みを編集';
+}
+
 /** カード・埋め込みが指しているURLを取り出す */
 function blockUrl(block) {
-  if (block.classList.contains('link-card')) return block.getAttribute('href') || '';
   const iframe = block.querySelector('iframe');
-  return iframe ? iframe.getAttribute('src') || '' : '';
+  if (iframe) return iframe.getAttribute('src') || ''; // 埋め込み
+  return block.getAttribute('href') || ''; // カード・動画カード
 }
 
 /**
@@ -276,16 +283,37 @@ async function applyLinkCard(url) {
   setUrlButtonsDisabled(true);
   try {
     const meta = await api.fetchMetadata(url); // 失敗時もURLだけのmetaが返る
-    insertOrReplace(embeds.buildCardHTML(meta));
+    // サムネイルはこちらに保存しておく。
+    // そうすればメモを見返すたびに相手のサーバーへ通信せずに済む
+    // (オフラインでも表示でき、閲覧の記録も残らない)。
+    const image = meta.image ? (await api.downloadImage(meta.image)) || '' : '';
+    insertOrReplace(embeds.buildCardHTML({ ...meta, image }));
   } finally {
     setUrlButtonsDisabled(false);
     statusEl.textContent = '';
   }
 }
 
-/** iframe埋め込みを挿入する */
-function applyEmbed(url) {
-  insertOrReplace(embeds.buildEmbedHTML(url));
+/**
+ * 「埋め込み」ボタンの処理。
+ *
+ * 動画のURLなら iframe ではなく動画カードにする。
+ * 動画はアプリの中では再生できないためで、理由は embeds.js の冒頭に書いてある。
+ */
+async function applyEmbed(url) {
+  if (!embeds.isVideoUrl(url)) {
+    insertOrReplace(embeds.buildEmbedHTML(url));
+    return;
+  }
+
+  statusEl.textContent = '動画の情報を取得中…';
+  setUrlButtonsDisabled(true);
+  try {
+    insertOrReplace(await videos.buildCard(url));
+  } finally {
+    setUrlButtonsDisabled(false);
+    statusEl.textContent = '';
+  }
 }
 
 /**
@@ -296,7 +324,8 @@ function insertOrReplace(html) {
   const target = editingBlock || editingAnchor;
   dialog.close();
   if (target) {
-    editor.replaceElement(target, html);
+    // 置き換えのときは末尾の空段落を付けない(差し替えるたびに空行が増えるため)
+    editor.replaceElement(target, embeds.withoutTrailingParagraph(html));
     return;
   }
   editor.restoreSelection();

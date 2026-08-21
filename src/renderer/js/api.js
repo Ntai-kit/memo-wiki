@@ -14,6 +14,7 @@ export const deletePage = (id) => api.deletePage(id);
 export const searchPages = (query) => api.searchPages(query);
 export const buildGraph = () => api.buildGraph();
 export const saveImage = (data, ext) => api.saveImage(data, ext);
+export const downloadImage = (url) => api.downloadImage(url);
 export const fetchMetadata = (url) => api.fetchMetadata(url);
 export const openExternal = (url) => api.openExternal(url);
 

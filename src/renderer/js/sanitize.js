@@ -56,7 +56,9 @@ const COMMON_ATTRS = ['class'];
 const ALLOWED_CLASSES = new Set([
   'internal-link', 'external-link',
   'link-card', 'card-body', 'card-title', 'card-desc', 'card-site', 'card-thumb',
-  'embed-wrapper', 'video', 'embed-open',
+  'video-card', 'video-visual', 'video-thumb', 'video-play', 'video-body',
+  'video-title', 'video-site',
+  'embed-wrapper', 'embed-open',
   'toc-block', 'toc-title', 'toc-list', 'toc-item', 'toc-link', 'toc-number', 'toc-empty',
   'toc-level-0', 'toc-level-1', 'toc-level-2',
 ]);
@@ -84,7 +86,7 @@ export function sanitizeHTML(html) {
  * これを忘れると、貼り付けたカードの中に文字を打ててしまい、見た目が壊れる。
  */
 function restoreBlocks(root) {
-  for (const block of root.querySelectorAll('.link-card, .embed-wrapper, .toc-block')) {
+  for (const block of root.querySelectorAll('.link-card, .video-card, .embed-wrapper, .toc-block')) {
     block.setAttribute('contenteditable', 'false');
   }
 }

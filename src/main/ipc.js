@@ -26,6 +26,14 @@ function register(storage, updater, whatsnew) {
   // リンクカード用のメタデータ取得
   ipcMain.handle('meta:fetch', (_e, url) => metadata.fetchMetadata(url));
 
+  // サムネイル画像を取ってきて、こちらに保存する。
+  // 保存してしまえば、あとから見るときに相手のサーバーへ通信しない。
+  // 取得できなければ null を返す(呼び出し側は画像なしで続ける)。
+  ipcMain.handle('images:download', async (_e, url) => {
+    const image = await metadata.fetchImage(url);
+    return image ? storage.saveImage(image.data, image.ext) : null;
+  });
+
   // アプリのバージョン(画面下部の表示に使う)
   ipcMain.handle('app:version', () => app.getVersion());
 

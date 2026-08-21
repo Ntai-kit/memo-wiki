@@ -8,6 +8,10 @@
  * 取得優先順位: OGPタグ(og:*) → 通常のmetaタグ → <title>。
  * どれも取れなければURL自身をタイトルとして返す(カードは常に作れる)。
  *
+ * サムネイル画像そのものを取ってくる fetchImage も持つ。
+ * 画像をこちらで保存してしまえば、あとから見るときに
+ * 相手のサーバーへ通信しない(オフラインでも見られる・見た記録も残らない)。
+ *
  * parseMetadata は純粋関数として分離してあり、単体テストできる。
  */
 
@@ -114,4 +118,41 @@ function decodeEntities(text) {
     .replace(/&apos;/g, "'");
 }
 
-module.exports = { fetchMetadata, parseMetadata };
+/** 画像として受け付けるMIMEタイプと、対応する拡張子 */
+const IMAGE_TYPES = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
+/** 画像1枚の上限(サムネイルなのでこれで十分) */
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+/**
+ * 画像URLから画像そのものを取得する。
+ * @returns {Promise<{data: Buffer, ext: string} | null>} 取れなければ null
+ */
+async function fetchImage(url) {
+  if (!/^https?:\/\//.test(url)) return null;
+  try {
+    const { net } = require('electron');
+    const res = await net.fetch(url, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      headers: { 'User-Agent': 'Mozilla/5.0 (MemoWiki link preview)' },
+    });
+    if (!res.ok) return null;
+
+    const type = String(res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    const ext = IMAGE_TYPES[type];
+    if (!ext) return null; // 画像以外は受け取らない
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    if (buffer.length === 0 || buffer.length > MAX_IMAGE_BYTES) return null;
+    return { data: buffer, ext };
+  } catch {
+    return null;
+  }
+}
+
+module.exports = { fetchMetadata, parseMetadata, fetchImage };

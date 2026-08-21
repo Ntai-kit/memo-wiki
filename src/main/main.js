@@ -17,7 +17,6 @@ const protocol = require('./protocol');
 const backup = require('./backup');
 const updater = require('./updater');
 const whatsnew = require('./whatsnew');
-const appOrigin = require('./app-origin');
 
 /** メインウィンドウを生成する(生成したウィンドウを返す) */
 function createWindow() {
@@ -33,9 +32,7 @@ function createWindow() {
   });
 
   hardenWindow(win);
-  // ファイルとしてではなく、アプリ専用のオリジンから読み込む。
-  // こうしないと埋め込み動画が「身元不明」として再生を拒否される
-  win.loadURL(appOrigin.APP_URL);
+  win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   return win;
 }
 
@@ -49,15 +46,9 @@ function createWindow() {
 function hardenWindow(win) {
   // 1. アプリ画面そのものが外部ページへ遷移するのを禁止する
   //    (画面が乗っ取られると preload 経由でファイル操作される恐れがあるため)
-  //    自分のオリジン内への移動だけを許す
+  //    自分の画面ファイル(file://)への移動だけを許す
   win.webContents.on('will-navigate', (event, url) => {
-    let sameOrigin = false;
-    try {
-      sameOrigin = new URL(url).hostname === appOrigin.APP_HOST;
-    } catch {
-      sameOrigin = false;
-    }
-    if (!sameOrigin) event.preventDefault();
+    if (!url.startsWith('file://')) event.preventDefault();
   });
 
   // 2. 新しいウィンドウ(target=_blank など)はアプリ内で開かせず、
@@ -107,7 +98,6 @@ app.whenReady().then(() => {
 
   storage.init(app.getPath('userData')); // 保存先フォルダの準備
   protocol.registerHandler(storage);     // memo:// で画像を配信
-  appOrigin.register();                  // 画面に正規のオリジンを与える
   ipc.register(storage, updater, whatsnew); // IPCハンドラの登録
   updater.init(createWindow());          // ウィンドウ生成 + 自動アップデート開始
 

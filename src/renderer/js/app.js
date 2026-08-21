@@ -25,6 +25,7 @@ import * as guide from './guide.js';
 import * as whatsnew from './whatsnew.js';
 import * as repaint from './repaint.js';
 import * as toc from './toc.js';
+import * as videos from './videos.js';
 
 const titleInput = document.getElementById('page-title');
 const saveStatus = document.getElementById('save-status');
@@ -58,6 +59,19 @@ async function openPage(pageId) {
   pages.setActive(page.id);
   setStatus('');
   showEditor(); // マップから開いた場合はエディタに戻る
+
+  // 昔のバージョンで入れた動画の埋め込みを動画カードに置き換える。
+  // 通信を伴うので待たずに進め、終わったら知らせるだけにする
+  // (置き換えた結果は次に保存されたときにファイルへ反映される)。
+  upgradeVideosInBackground(page.id);
+}
+
+/** 開いているページの古い動画埋め込みを、裏で動画カードに置き換える */
+async function upgradeVideosInBackground(pageId) {
+  const replaced = await videos.upgradeOldEmbeds();
+  if (replaced > 0 && currentPageId === pageId) {
+    setStatus(`動画${replaced}件を動画カードにしました`);
+  }
 }
 
 /** 編集中のページを保存する */

@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld('memoAPI', {
   // 画像保存(Uint8Array と拡張子を渡すと memo:// のURLが返る)
   saveImage: (data, ext) => ipcRenderer.invoke('images:save', data, ext),
 
+  // Web上の画像を取ってきて保存する(サムネイル用。失敗すると null)
+  downloadImage: (url) => ipcRenderer.invoke('images:download', url),
+
   // リンクカード用のメタデータ取得
   fetchMetadata: (url) => ipcRenderer.invoke('meta:fetch', url),
 
