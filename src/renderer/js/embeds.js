@@ -45,7 +45,7 @@ export function buildCardHTML(meta) {
  */
 export function buildEmbedHTML(url) {
   const embedUrl = toEmbedUrl(url);
-  const isVideo = embedUrl !== url; // 変換されたら動画サイトとみなす
+  const isVideo = isVideoUrl(embedUrl);
 
   // sandbox の扱いについて:
   //   知らないサイトを埋め込むときは sandbox で権限を絞る。
@@ -57,6 +57,12 @@ export function buildEmbedHTML(url) {
     : 'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups ' +
       'allow-popups-to-escape-sandbox allow-forms" ';
 
+  // 埋め込みが再生できない場合に備え、必ず「ブラウザで開く」を添える。
+  // 配信元の都合(埋め込み禁止など)で表示できないことがあり、
+  // そのときに手詰まりにならないようにするため。
+  const openLink =
+    `<a class="embed-open" href="${escapeHTML(toWatchUrl(url))}">ブラウザで開く</a>`;
+
   return (
     `<span class="embed-wrapper${isVideo ? ' video' : ''}" contenteditable="false">` +
     `<iframe src="${escapeHTML(embedUrl)}" ` +
@@ -64,7 +70,34 @@ export function buildEmbedHTML(url) {
     `allow="fullscreen; autoplay; encrypted-media; picture-in-picture" ` +
     `referrerpolicy="strict-origin-when-cross-origin" ` +
     `loading="lazy"></iframe>` +
+    openLink +
     `</span><p><br></p>`
+  );
+}
+
+/**
+ * 「ブラウザで開く」用に、人が見るページのURLへ戻す(純粋関数)。
+ *
+ * 埋め込み用URLをそのままブラウザで開くと、プレーヤーだけの素っ気ない画面になる。
+ * 説明欄やコメントも見られる通常のページを開きたいので、戻せる場合は戻す。
+ */
+export function toWatchUrl(url) {
+  const youtube = url.match(/youtube(?:-nocookie)?\.com\/embed\/([\w-]+)/);
+  if (youtube) return `https://www.youtube.com/watch?v=${youtube[1]}`;
+
+  const vimeo = url.match(/player\.vimeo\.com\/video\/(\d+)/);
+  if (vimeo) return `https://vimeo.com/${vimeo[1]}`;
+
+  const nico = url.match(/embed\.nicovideo\.jp\/watch\/([\w]+)/);
+  if (nico) return `https://www.nicovideo.jp/watch/${nico[1]}`;
+
+  return url;
+}
+
+/** 動画サイトの埋め込みURLかどうか(見た目を16:9にするかの判定に使う) */
+function isVideoUrl(embedUrl) {
+  return /(?:youtube(?:-nocookie)?\.com\/embed\/|player\.vimeo\.com\/|embed\.nicovideo\.jp\/)/.test(
+    embedUrl
   );
 }
 
@@ -107,11 +140,11 @@ const EMBED_RULES = [
   {
     // YouTube: watch?v=ID / youtu.be/ID / shorts/ID / embed/ID
     //
-    // 通常の youtube.com ではなく youtube-nocookie.com を使う。
-    // 埋め込み時の制限が緩く、「動画プレーヤーの設定エラー」が起きにくい。
-    // (加えて、視聴履歴に基づく追跡も行われない)
+    // 動画ページのURLを貼られたときは、こちらで埋め込み用URLに組み立てる。
+    // ただし配信元が出した埋め込みURLをそのまま貼るのが最も確実なので、
+    // 使い方ガイドではそちらを案内している。
     pattern: /(?:youtube\.com\/(?:watch\?.*?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/,
-    toUrl: (m) => `https://www.youtube-nocookie.com/embed/${m[1]}`,
+    toUrl: (m) => `https://www.youtube.com/embed/${m[1]}`,
   },
   {
     // Vimeo: vimeo.com/12345
@@ -131,6 +164,11 @@ const EMBED_RULES = [
 ];
 
 export function toEmbedUrl(url) {
+  // すでに埋め込み用のURLなら、そのまま使う。
+  // 「共有 → 埋め込む」で得たURLには配信元が付けたパラメータが含まれており、
+  // こちらで組み立て直すとそれを落としてしまうため。
+  if (isVideoUrl(url)) return url;
+
   for (const rule of EMBED_RULES) {
     const m = url.match(rule.pattern);
     if (m) return rule.toUrl(m, url);

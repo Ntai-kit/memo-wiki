@@ -409,6 +409,16 @@ body {
   background: #fff;
 }
 
+/* 埋め込みの下に添える「ブラウザで開く」 */
+#editor .embed-open {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+#editor .embed-open:hover { color: var(--accent); text-decoration: underline; }
+
 /* 動画(YouTubeなど)は16:9で表示 */
 #editor .embed-wrapper.video iframe {
   aspect-ratio: 16 / 9;
