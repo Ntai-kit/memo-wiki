@@ -98,6 +98,8 @@ async function deleteCurrentPage() {
   cover.setPage({ cover: '', subtitle: '' });
   editor.setHTML('');
   await pages.refresh();
+  pages.setActive(null); // 一覧に消したページの選択が残らないようにする
+  setStatus('');
 }
 
 /**
@@ -167,10 +169,14 @@ async function main() {
   // キーボードショートカット: Ctrl+S 保存 / Ctrl+K リンク
   window.addEventListener('keydown', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
-    if (e.key === 's') {
+    // ダイアログを開いている間は本文の操作をしない
+    if (document.querySelector('dialog[open]')) return;
+    // CapsLockやShiftで大文字になっても効くように小文字にそろえる
+    const key = String(e.key).toLowerCase();
+    if (key === 's') {
       e.preventDefault();
       saveCurrentPage();
-    } else if (e.key === 'k' && mapPane.hidden) {
+    } else if (key === 'k' && mapPane.hidden) {
       // マップ表示中は本文を編集していないので何もしない
       e.preventDefault();
       links.openDialog();

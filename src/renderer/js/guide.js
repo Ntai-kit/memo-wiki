@@ -23,6 +23,7 @@ export function init() {
 
 /** ガイドを開く(毎回先頭から読めるようスクロール位置を戻す) */
 export function open() {
+  if (dialog.open) return; // 二重に開かない
   dialog.querySelector('.guide-body').scrollTop = 0;
   dialog.showModal();
 }

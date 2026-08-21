@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; img-src 'self' memo: data: https: http:; style-src 'self' 'unsafe-inline'; frame-src https: http:"
+    content="default-src 'self'; script-src 'self'; img-src 'self' memo: data: https: http:; style-src 'self' 'unsafe-inline'; frame-src https: http:; connect-src 'self' memo:"
   />
   <title>Memo Wiki</title>
   <link rel="stylesheet" href="styles.css" />
@@ -164,15 +164,18 @@
         再生できる可能性が高くなります。
       </p>
       <p>
-        それでも動画が表示されないことがあります。
-        YouTubeは「どのサイトから埋め込まれたか」で再生の可否を判断しており、
-        パソコンの中で動くアプリはその条件を満たせないためです。
-        その場合は、埋め込みの下にある <b>「ブラウザで開く」</b> から視聴してください。
+        配信元によっては、そもそも埋め込みを許していない動画もあります。
+        表示されないときは、埋め込みの下にある <b>「ブラウザで開く」</b> から視聴してください。
       </p>
       <p>
-        貼ったあとで直したいときは、そのリンクを
-        <b>Ctrl を押しながらクリック</b> してください。
-        文字やリンク先を変えたり、リンクだけ外したりできます。
+        貼ったあとで直したいときは、<b>Ctrl を押しながらクリック</b> してください。
+      </p>
+      <table class="guide-table">
+        <tr><th>文字のリンク</th><td>表示する文字とリンク先を変えられます。「リンクを解除」で文字だけ残せます</td></tr>
+        <tr><th>カード・埋め込み</th><td>リンク先を差し替えられます。「削除」を押すと、そのカード・埋め込みごと消せます</td></tr>
+      </table>
+      <p class="guide-note">
+        カードや埋め込みはマウスを乗せると薄い枠が出ます。その枠の中で Ctrl+クリック してください。
       </p>
 
       <h3>目次をつける</h3>
@@ -218,7 +221,7 @@
         <tr><th>Ctrl + S</th><td>保存する</td></tr>
         <tr><th>Ctrl + K</th><td>リンクの画面を開く</td></tr>
         <tr><th>Ctrl + V</th><td>貼り付ける（画像もそのまま入ります）</td></tr>
-        <tr><th>Ctrl + クリック</th><td>貼ってあるリンクを編集する</td></tr>
+        <tr><th>Ctrl + クリック</th><td>貼ってあるリンク・カード・埋め込みを編集する</td></tr>
       </table>
 
       <h3>メモはどこに保存される?</h3>
@@ -256,7 +259,7 @@
     <button id="btn-link-new-page" class="wide">「選択中の文字」で新しいページを作ってリンク</button>
     <hr />
     <p class="dialog-note">またはWebサイトへのリンクを作る:</p>
-    <label class="dialog-field">
+    <label class="dialog-field" id="link-text-field">
       <span>表示する文字</span>
       <input id="link-text-input" type="text" placeholder="例: Anthropicの公式サイト" />
     </label>

@@ -27,7 +27,13 @@ let index = 0; // いま何件目を表示しているか
 
 export function init() {
   nextBtn.addEventListener('click', showNext);
-  closeBtn.addEventListener('click', finish);
+  closeBtn.addEventListener('click', () => dialog.close());
+
+  // Escキーや×で閉じられた場合も「見た」と記録する。
+  // 記録しないと、次に起動したときに同じお知らせが再び出てしまう。
+  dialog.addEventListener('close', () => {
+    api.markVersionSeen();
+  });
 }
 
 /**
@@ -57,14 +63,8 @@ function showNext() {
     index += 1;
     render();
   } else {
-    finish();
+    dialog.close(); // 閉じたときに「見た」と記録される
   }
-}
-
-/** 表示を終えて「見た」と記録する */
-async function finish() {
-  dialog.close();
-  await api.markVersionSeen();
 }
 
 /** いま表示するバージョンの内容を画面に反映する */

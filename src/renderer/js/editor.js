@@ -143,6 +143,12 @@ export function replaceElement(element, html) {
   document.execCommand('insertHTML', false, html);
 }
 
+/** カードや埋め込みなど、ひとかたまりの要素を丸ごと削除する */
+export function removeElement(element) {
+  editorEl.focus();
+  element.remove();
+}
+
 /** リンクを解除して、中の文字だけを残す */
 export function removeLink(anchor) {
   editorEl.focus();

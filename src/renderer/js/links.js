@@ -9,10 +9,16 @@
  *       ・URLを「文字リンク / カード / 埋め込み」として挿入する
  *       ・動画サイトの「埋め込みコード」を貼っても、中のURLを取り出して使う
  *   - すでに張ったリンクの編集(表示文字・リンク先の変更、リンクの解除)
+ *   - カード・埋め込みの編集と削除
  *   - 本文中のリンククリック時の動作
  *       ・内部リンク → そのページへ移動
  *       ・外部リンク、リンクカード → 既定ブラウザで開く
- *       ・Ctrl+クリック → そのリンクを編集する
+ *       ・Ctrl+クリック → そのリンク/カード/埋め込みを編集する
+ *
+ * 編集の対象は2種類ある:
+ *   文字リンク  … <a> を書き換える(editingAnchor)
+ *   カード/埋め込み … ひとかたまりの要素を丸ごと差し替える(editingBlock)
+ * どちらも同じダイアログで扱い、ダイアログの見た目だけを切り替える。
  *
  * 文字にリンクを埋め込む方法は3通りあり、いずれも記法の入力は不要:
  *   1. 文字を選択してから「🔗 リンク」(選択した文字が表示文字になる)
@@ -40,9 +46,15 @@ const removeBtn = document.getElementById('btn-link-remove');
 const dialogTitle = document.getElementById('link-dialog-title');
 const externalBtn = document.getElementById('btn-link-external');
 
+const textField = document.getElementById('link-text-field');
+
+/** カード・埋め込みを表すCSSクラス(ひとかたまりとして扱う要素) */
+const BLOCK_SELECTOR = '.link-card, .embed-wrapper';
+
 let allPages = []; // ダイアログ表示中のページ一覧キャッシュ
 let onNavigate = null; // 内部リンククリック時にページを開くコールバック
-let editingAnchor = null; // 編集中の既存リンク(新規作成のときは null)
+let editingAnchor = null; // 編集中の文字リンク(新規作成のときは null)
+let editingBlock = null; // 編集中のカード・埋め込み(それ以外のときは null)
 
 /**
  * 初期化。
@@ -87,9 +99,13 @@ export function init(handlers) {
     });
   }
 
-  // ダイアログ内: リンクの解除(編集中のみ表示)
+  // ダイアログ内: 解除・削除(編集中のみ表示)
   removeBtn.addEventListener('click', () => {
-    if (editingAnchor) editor.removeLink(editingAnchor);
+    if (editingBlock) {
+      editor.removeElement(editingBlock); // カード・埋め込みは丸ごと消す
+    } else if (editingAnchor) {
+      editor.removeLink(editingAnchor); // 文字リンクは文字を残して解除する
+    }
     dialog.close();
   });
 
@@ -102,13 +118,22 @@ export function init(handlers) {
 
 /**
  * リンク設定ダイアログを開く。
- * @param {HTMLAnchorElement|null} anchor 編集する既存リンク(新規作成なら省略)
+ * @param {HTMLElement|null} target 編集する既存の要素
+ *        (文字リンクの <a>、またはカード・埋め込みの要素。新規作成なら省略)
  */
-export async function openDialog(anchor = null) {
-  if (anchor) {
-    // 既存リンクの編集: そのリンク全体を選択範囲として扱う
-    editor.saveSelectionOnElement(anchor);
-    editingAnchor = anchor;
+export async function openDialog(target = null) {
+  if (dialog.open) return; // 二重に開かない(開いたまま開こうとするとエラーになる)
+
+  editingAnchor = null;
+  editingBlock = null;
+
+  if (target && target.matches(BLOCK_SELECTOR)) {
+    // カード・埋め込みの編集
+    editingBlock = target;
+  } else if (target) {
+    // 文字リンクの編集: そのリンク全体を選択範囲として扱う
+    editor.saveSelectionOnElement(target);
+    editingAnchor = target;
   } else {
     editor.saveSelection(); // ダイアログで選択が失われる前に退避
     editingAnchor = editor.linkAtSavedSelection(); // カーソルがリンク内なら編集扱い
@@ -129,18 +154,30 @@ export async function openDialog(anchor = null) {
 function applyDialogMode() {
   const selectedText = editor.savedSelectionText().trim();
 
-  if (editingAnchor) {
+  if (editingBlock) {
+    // カード・埋め込みの編集: 表示文字は使わないので隠す
+    const isCard = editingBlock.classList.contains('link-card');
+    dialogTitle.textContent = isCard ? 'カードを編集' : '埋め込みを編集';
+    urlInput.value = blockUrl(editingBlock);
+    textInput.value = '';
+    externalBtn.textContent = '🔗 文字リンクに変更';
+    removeBtn.textContent = '削除';
+  } else if (editingAnchor) {
     dialogTitle.textContent = 'リンクを編集';
     textInput.value = editingAnchor.textContent;
     urlInput.value = editingAnchor.getAttribute('href') || '';
     externalBtn.textContent = '🔗 更新';
+    removeBtn.textContent = 'リンクを解除';
   } else {
     dialogTitle.textContent = 'リンクを設定';
     textInput.value = selectedText; // 選択していた文字を初期値にする
     urlInput.value = '';
     externalBtn.textContent = '🔗 文字にリンク';
+    removeBtn.textContent = 'リンクを解除';
   }
-  removeBtn.hidden = !editingAnchor;
+
+  textField.hidden = editingBlock !== null;
+  removeBtn.hidden = !editingAnchor && !editingBlock;
 
   // 「新規ページを作ってリンク」ボタンのラベルにも表示文字を反映する
   const text = displayText();
@@ -149,8 +186,20 @@ function applyDialogMode() {
     : '新しいページを作ってリンク';
 }
 
-/** ダイアログで指定されている表示文字(空なら選択中の文字) */
+/** カード・埋め込みが指しているURLを取り出す */
+function blockUrl(block) {
+  if (block.classList.contains('link-card')) return block.getAttribute('href') || '';
+  const iframe = block.querySelector('iframe');
+  return iframe ? iframe.getAttribute('src') || '' : '';
+}
+
+/**
+ * ダイアログで指定されている表示文字(空なら選択中の文字)。
+ * カード・埋め込みの編集中は表示文字を使わないので、常に空を返す
+ * (以前に選んでいた文字が紛れ込まないようにするため)。
+ */
 function displayText() {
+  if (editingBlock) return '';
   return textInput.value.trim() || editor.savedSelectionText().trim();
 }
 
@@ -200,8 +249,17 @@ function withValidUrl(action) {
 function applyExternalLink(url) {
   const text = displayText() || url; // 表示文字が無ければURLをそのまま見せる
   const anchor = editingAnchor;
+  const block = editingBlock;
   dialog.close();
 
+  // カード・埋め込みを文字リンクに変える場合
+  if (block) {
+    editor.replaceElement(
+      block,
+      `<a class="external-link" href="${editor.escapeHTML(url)}">${editor.escapeHTML(text)}</a>&nbsp;`
+    );
+    return;
+  }
   if (anchor) {
     editor.updateLink(anchor, { url, text });
     return;
@@ -235,10 +293,10 @@ function applyEmbed(url) {
  * 既存リンクを編集中ならそれを置き換え、そうでなければ選択位置に挿入する。
  */
 function insertOrReplace(html) {
-  const anchor = editingAnchor;
+  const target = editingBlock || editingAnchor;
   dialog.close();
-  if (anchor) {
-    editor.replaceElement(anchor, html);
+  if (target) {
+    editor.replaceElement(target, html);
     return;
   }
   editor.restoreSelection();
@@ -254,13 +312,27 @@ function setUrlButtonsDisabled(disabled) {
 
 /** 本文中のリンクをクリックしたときの処理 */
 function handleLinkClick(event) {
+  const withModifier = event.ctrlKey || event.metaKey;
+
+  // Ctrl(macはCmd)+クリック → カード・埋め込みを編集する。
+  // 埋め込みは <a> ではないので、リンクより先に判定する必要がある。
+  // また、埋め込みの中の「ブラウザで開く」を押した場合も、
+  // その埋め込み自体の編集として扱う。
+  if (withModifier) {
+    const block = event.target.closest(BLOCK_SELECTOR);
+    if (block) {
+      event.preventDefault();
+      openDialog(block);
+      return;
+    }
+  }
+
   const anchor = event.target.closest('a');
   if (!anchor) return;
   event.preventDefault(); // contenteditable内でのカーソル移動より優先する
 
-  // Ctrl(macはCmd)+クリック → 開かずに編集する
-  if (event.ctrlKey || event.metaKey) {
-    if (!anchor.classList.contains('link-card')) openDialog(anchor);
+  if (withModifier) {
+    openDialog(anchor); // 文字リンクの編集
     return;
   }
 

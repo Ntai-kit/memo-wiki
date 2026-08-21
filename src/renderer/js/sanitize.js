@@ -12,6 +12,7 @@
  *
  * 方針:
  *   - DROP_TAGS      : 中身ごと削除する(実行される可能性があるもの)
+ *   - iframe         : このアプリが作った埋め込み(https)だけを、属性を作り直して残す
  *   - ALLOWED_TAGS   : そのまま残す(文章の構造と装飾)
  *   - それ以外       : タグだけ外して中の文字は残す(情報を失わないため)
  *   - 属性           : 許可した属性のみ残し、URLはスキームを検査する
@@ -19,7 +20,7 @@
 
 /** 中身ごと削除するタグ(スクリプトの実行や外部読み込みにつながるもの) */
 const DROP_TAGS = new Set([
-  'script', 'style', 'iframe', 'object', 'embed', 'link', 'meta',
+  'script', 'style', 'object', 'embed', 'link', 'meta',
   'form', 'input', 'button', 'select', 'textarea', 'svg', 'math',
   'noscript', 'template', 'base', 'frame', 'frameset', 'applet',
 ]);
@@ -30,7 +31,7 @@ const ALLOWED_TAGS = new Set([
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
   'b', 'strong', 'i', 'em', 'u', 's', 'strike', 'sub', 'sup', 'mark', 'small',
   'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
-  'a', 'img',
+  'a', 'img', 'iframe',
   'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption',
 ]);
 
@@ -38,6 +39,8 @@ const ALLOWED_TAGS = new Set([
 const ALLOWED_ATTRS = {
   a: ['href', 'class', 'data-page-id'],
   img: ['src', 'alt'],
+  // iframe の属性はここでは絞らず、下の rebuildIframe で作り直す
+  iframe: [],
   td: ['colspan', 'rowspan'],
   th: ['colspan', 'rowspan'],
 };
@@ -69,7 +72,21 @@ const SAFE_URL = /^(https?:\/\/|memo:\/\/|data:image\/)/i;
 export function sanitizeHTML(html) {
   const doc = new DOMParser().parseFromString(String(html), 'text/html');
   cleanChildren(doc.body);
+  restoreBlocks(doc.body);
   return doc.body.innerHTML;
+}
+
+/**
+ * カード・埋め込み・目次を「ひとかたまり」に戻す。
+ *
+ * contenteditable は外部サイトから持ち込ませたくないので属性としては許可せず、
+ * 浄化が済んだあとにこちらから付け直す。
+ * これを忘れると、貼り付けたカードの中に文字を打ててしまい、見た目が壊れる。
+ */
+function restoreBlocks(root) {
+  for (const block of root.querySelectorAll('.link-card, .embed-wrapper, .toc-block')) {
+    block.setAttribute('contenteditable', 'false');
+  }
 }
 
 /** 要素の子を順に検査する(再帰) */
@@ -89,8 +106,34 @@ function cleanChildren(parent) {
       continue;
     }
 
+    if (tag === 'iframe') {
+      rebuildIframe(element); // 埋め込みは属性を作り直す(残せない場合は削除)
+      continue;
+    }
+
     cleanAttributes(element, tag);
   }
+}
+
+/**
+ * 埋め込み(iframe)の属性を作り直す。
+ *
+ * メモ同士で埋め込みをコピーしたときに消えてしまわないよう残すが、
+ * 貼り付けられたものをそのまま信用はしない。
+ * https のURLだけを受け付け、属性はこのアプリが自分で作るときと
+ * 同じものだけを付け直す(元の属性はすべて捨てる)。
+ */
+function rebuildIframe(element) {
+  const src = (element.getAttribute('src') || '').trim();
+  if (!/^https:\/\//i.test(src)) {
+    element.remove(); // https 以外は残さない
+    return;
+  }
+  for (const attr of [...element.attributes]) element.removeAttribute(attr.name);
+  element.setAttribute('src', src);
+  element.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture');
+  element.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+  element.setAttribute('loading', 'lazy');
 }
 
 /** 許可されていない属性を取り除く */

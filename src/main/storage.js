@@ -85,12 +85,23 @@ function pageFile(id) {
   return path.join(pagesDir, `${safeId}.json`);
 }
 
-/** 保存されている全ページを読み込む(移行済み・内部用) */
+/**
+ * 保存されている全ページを読み込む(移行済み・内部用)。
+ *
+ * 1つでも壊れたファイルがあると一覧も検索もマップも開けなくなってしまうため、
+ * 読めなかったファイルはその1件だけを飛ばして先へ進む。
+ */
 function readAllPages() {
-  return fs
-    .readdirSync(pagesDir)
-    .filter((name) => name.endsWith('.json'))
-    .map((name) => migratePage(JSON.parse(fs.readFileSync(path.join(pagesDir, name), 'utf8'))));
+  const pages = [];
+  for (const name of fs.readdirSync(pagesDir)) {
+    if (!name.endsWith('.json')) continue;
+    try {
+      pages.push(migratePage(JSON.parse(fs.readFileSync(path.join(pagesDir, name), 'utf8'))));
+    } catch (error) {
+      console.warn(`[storage] 読み込めないページを飛ばしました: ${name}`, error.message);
+    }
+  }
+  return pages;
 }
 
 /** 全ページのメタ情報一覧(更新日時の新しい順) */
@@ -110,7 +121,13 @@ function listPages() {
 function loadPage(id) {
   const file = pageFile(id);
   if (!fs.existsSync(file)) return null;
-  return migratePage(JSON.parse(fs.readFileSync(file, 'utf8')));
+  try {
+    return migratePage(JSON.parse(fs.readFileSync(file, 'utf8')));
+  } catch (error) {
+    // 壊れたファイルを読んでもアプリを止めない(空扱いにして操作を続けられるようにする)
+    console.warn(`[storage] ページを読み込めませんでした: ${id}`, error.message);
+    return null;
+  }
 }
 
 /**
@@ -133,8 +150,22 @@ function savePage(id, fields = {}) {
     html: pick(fields.html, existing?.html, ''),
     updatedAt: new Date().toISOString(),
   };
-  fs.writeFileSync(pageFile(page.id), JSON.stringify(page, null, 2), 'utf8');
+  writeFileAtomic(pageFile(page.id), JSON.stringify(page, null, 2));
   return page;
+}
+
+/**
+ * ファイルを安全に書き出す。
+ *
+ * 直接上書きすると、書き込みの途中で電源が切れたときに
+ * 中途半端な内容のファイルが残り、そのページが読めなくなる。
+ * いったん別名で書いてから置き換えることで、
+ * 「古いままか、新しく完全か」のどちらかしか残らないようにする。
+ */
+function writeFileAtomic(file, contents) {
+  const temp = `${file}.tmp`;
+  fs.writeFileSync(temp, contents, 'utf8');
+  fs.renameSync(temp, file);
 }
 
 /** 最初に見つかった undefined/null でない値を返す */
