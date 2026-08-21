@@ -68,16 +68,23 @@ export function insertHTML(html) {
   document.execCommand('insertHTML', false, html);
 }
 
+/** ツールバーの見出しボタンと、実際に使うタグの対応 */
+const HEADING_TAGS = {
+  heading1: 'h2', // 大見出し(目次では「1.」の階層)
+  heading2: 'h3', // 小見出し(目次では「1.1」の階層)
+};
+
 /**
  * ツールバーの書式コマンドを実行する。
- * cmd: "heading" | "bold" | "list"
+ * cmd: "heading1" | "heading2" | "bold" | "list"
  */
 export function format(cmd) {
   editorEl.focus();
-  if (cmd === 'heading') {
-    // すでに見出しなら段落に戻す(トグル動作)
-    const isHeading = document.queryCommandValue('formatBlock') === 'h2';
-    document.execCommand('formatBlock', false, isHeading ? 'p' : 'h2');
+  if (HEADING_TAGS[cmd]) {
+    // すでに同じ見出しなら段落に戻す(トグル動作)
+    const tag = HEADING_TAGS[cmd];
+    const current = String(document.queryCommandValue('formatBlock')).toLowerCase();
+    document.execCommand('formatBlock', false, current === tag ? 'p' : tag);
   } else if (cmd === 'bold') {
     document.execCommand('bold');
   } else if (cmd === 'list') {

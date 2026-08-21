@@ -294,6 +294,17 @@ function nodeAt(screenX, screenY) {
   return null;
 }
 
+/**
+ * カーソルの形を設定する。
+ *
+ * 同じ値を繰り返し設定するとちらつくため、変わったときだけ書き換える。
+ * カーソルの指定をこの関数に集約することで、
+ * ドラッグ中に指定が抜けて「カーソルが消える」状態になるのを防ぐ。
+ */
+function setCursor(shape) {
+  if (canvas.style.cursor !== shape) canvas.style.cursor = shape;
+}
+
 /** イベントの座標をcanvas内の位置(CSSピクセル)に変換する */
 function pointerPos(event) {
   const rect = canvas.getBoundingClientRect();
@@ -311,6 +322,9 @@ function handlePointerDown(event) {
   } else {
     panning = true;
   }
+  // ドラッグ中はカーソルを固定する。
+  // ここで明示しないと、環境によってはカーソルが消えたままになる
+  setCursor('grabbing');
   canvas.setPointerCapture(event.pointerId);
 }
 
@@ -325,21 +339,23 @@ function handlePointerMove(event) {
     const world = toWorld(p.x, p.y);
     draggingNode.x = world.x;
     draggingNode.y = world.y;
+    setCursor('grabbing'); // ドラッグ中もカーソルを保ち続ける
     startAnimation(); // 周りのノードも追従させる
     return;
   }
   if (panning) {
     offsetX += dx;
     offsetY += dy;
+    setCursor('grabbing');
     draw();
     return;
   }
 
   // ホバー表示の更新
   const node = nodeAt(p.x, p.y);
+  setCursor(node ? 'pointer' : 'grab');
   if (node !== hoveredNode) {
     hoveredNode = node;
-    canvas.style.cursor = node ? 'pointer' : 'grab';
     canvas.title = node ? `${node.title}${node.subtitle ? `\n${node.subtitle}` : ''}` : '';
     draw();
   }
@@ -358,6 +374,7 @@ function handlePointerUp(event) {
   if (event.pointerId !== undefined && canvas.hasPointerCapture?.(event.pointerId)) {
     canvas.releasePointerCapture(event.pointerId);
   }
+  setCursor(hoveredNode ? 'pointer' : 'grab'); // 通常のカーソルに戻す
   startAnimation();
 }
 

@@ -39,9 +39,12 @@
     <main id="editor-pane">
       <!-- ツールバー: すべてクリック操作で書式を設定する -->
       <div id="toolbar">
-        <button data-cmd="heading" title="見出しに切り替え">見出し</button>
+        <button data-cmd="heading1" title="大見出しにする(目次の「1.」になる)">大見出し</button>
+        <button data-cmd="heading2" title="小見出しにする(目次の「1.1」になる)">小見出し</button>
         <button data-cmd="bold" title="太字 (Ctrl+B)"><b>B</b></button>
         <button data-cmd="list" title="箇条書き">・リスト</button>
+        <span class="toolbar-sep"></span>
+        <button id="btn-toc" title="この位置に目次を入れる。見出しから自動で作られる">📑 目次</button>
         <span class="toolbar-sep"></span>
         <button id="btn-link" title="文字にリンクを埋め込む (Ctrl+K)。文字を選んでから押すとその文字がリンクになる">🔗 リンク</button>
         <button id="btn-unlink" title="選択範囲のリンクを解除">リンク解除</button>
@@ -157,6 +160,14 @@
         貼ったあとで直したいときは、そのリンクを
         <b>Ctrl を押しながらクリック</b> してください。
         文字やリンク先を変えたり、リンクだけ外したりできます。
+      </p>
+
+      <h3>目次をつける</h3>
+      <p>
+        長いメモには目次をつけられます。文章を <b>「大見出し」</b> と <b>「小見出し」</b> で
+        区切ってから、目次を置きたい場所で <b>「📑 目次」</b> を押してください。
+        見出しから自動で作られ、あとで見出しを増やしたり書き直したりしても
+        自動でついてきます。項目をクリックすると、その場所まで移動します。
       </p>
 
       <h3>画像を入れる</h3>

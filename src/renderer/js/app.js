@@ -6,7 +6,7 @@
  *   - ページの読み込み・保存・削除・新規作成
  *   - エディタ画面と関連マップ画面の切り替え
  *   - 各モジュール(editor / cover / links / images / paste / pages / search /
- *     graph / updates / guide / whatsnew / repaint)の初期化と連携
+ *     graph / updates / guide / whatsnew / repaint / toc)の初期化と連携
  *
  * 個々の機能の詳細は各モジュールに任せ、ここでは
  * 「何をどの順番でつなぐか」だけを書く。
@@ -24,6 +24,7 @@ import * as updates from './updates.js';
 import * as guide from './guide.js';
 import * as whatsnew from './whatsnew.js';
 import * as repaint from './repaint.js';
+import * as toc from './toc.js';
 
 const titleInput = document.getElementById('page-title');
 const saveStatus = document.getElementById('save-status');
@@ -53,6 +54,7 @@ async function openPage(pageId) {
   titleInput.value = page.title;
   cover.setPage({ cover: page.cover, subtitle: page.subtitle });
   editor.setHTML(page.html);
+  toc.refresh(); // 保存されていた目次を最新の見出しで作り直す
   pages.setActive(page.id);
   setStatus('');
   showEditor(); // マップから開いた場合はエディタに戻る
@@ -146,6 +148,7 @@ async function main() {
   guide.init(); // 「?」ボタンで開く使い方ガイド
   whatsnew.init(); // 更新内容のお知らせ
   repaint.init(); // ダイアログを閉じた跡が残る環境への対策
+  toc.init(); // 目次の挿入と自動更新
 
   // ツールバー: 書式ボタン(data-cmd属性で共通処理)
   for (const btn of document.querySelectorAll('#toolbar button[data-cmd]')) {

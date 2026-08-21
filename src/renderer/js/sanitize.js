@@ -54,6 +54,8 @@ const ALLOWED_CLASSES = new Set([
   'internal-link', 'external-link',
   'link-card', 'card-body', 'card-title', 'card-desc', 'card-site', 'card-thumb',
   'embed-wrapper', 'video',
+  'toc-block', 'toc-title', 'toc-list', 'toc-item', 'toc-link', 'toc-number', 'toc-empty',
+  'toc-level-0', 'toc-level-1', 'toc-level-2',
 ]);
 
 /** 属性値として許可するURLのスキーム */

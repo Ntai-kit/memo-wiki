@@ -1,6 +1,6 @@
 {
   "name": "memo-wiki",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "description": "リンクと画像をクリック操作で扱えるWiki風メモアプリ",
   "author": "Nez",
   "license": "GPL-3.0-or-later",
@@ -8,6 +8,7 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
+    "update": "electron-builder --win && node scripts/install-local.js",
     "release": "electron-builder --win --publish always"
   },
   "devDependencies": {

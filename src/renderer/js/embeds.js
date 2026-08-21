@@ -46,11 +46,20 @@ export function buildCardHTML(meta) {
 export function buildEmbedHTML(url) {
   const embedUrl = toEmbedUrl(url);
   const isVideo = embedUrl !== url; // 変換されたら動画サイトとみなす
+
+  // referrerpolicy と sandbox の指定について:
+  //   このアプリの画面はファイルとして読み込まれるため、
+  //   何も指定しないと「どこから埋め込まれたか」の情報が相手に届かず、
+  //   YouTube が「動画プレーヤーの設定エラー(エラー153)」を出すことがある。
+  //   strict-origin-when-cross-origin を指定して必要な情報だけを渡す。
+  //   sandbox は、動画の再生に必要な最小限の許可だけを与えている。
   return (
     `<span class="embed-wrapper${isVideo ? ' video' : ''}" contenteditable="false">` +
     `<iframe src="${escapeHTML(embedUrl)}" ` +
-    `sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" ` +
-    `allow="fullscreen; encrypted-media; picture-in-picture" ` +
+    `sandbox="allow-scripts allow-same-origin allow-presentation allow-popups ` +
+    `allow-popups-to-escape-sandbox allow-forms" ` +
+    `allow="fullscreen; autoplay; encrypted-media; picture-in-picture" ` +
+    `referrerpolicy="strict-origin-when-cross-origin" ` +
     `loading="lazy"></iframe>` +
     `</span><p><br></p>`
   );
@@ -64,9 +73,13 @@ export function buildEmbedHTML(url) {
  */
 const EMBED_RULES = [
   {
-    // YouTube: watch?v=ID / youtu.be/ID / shorts/ID
-    pattern: /(?:youtube\.com\/(?:watch\?.*?v=|shorts\/)|youtu\.be\/)([\w-]{6,})/,
-    toUrl: (m) => `https://www.youtube.com/embed/${m[1]}`,
+    // YouTube: watch?v=ID / youtu.be/ID / shorts/ID / embed/ID
+    //
+    // 通常の youtube.com ではなく youtube-nocookie.com を使う。
+    // 埋め込み時の制限が緩く、「動画プレーヤーの設定エラー」が起きにくい。
+    // (加えて、視聴履歴に基づく追跡も行われない)
+    pattern: /(?:youtube\.com\/(?:watch\?.*?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/,
+    toUrl: (m) => `https://www.youtube-nocookie.com/embed/${m[1]}`,
   },
   {
     // Vimeo: vimeo.com/12345
