@@ -18,6 +18,11 @@ export const downloadImage = (url) => api.downloadImage(url);
 export const fetchMetadata = (url) => api.fetchMetadata(url);
 export const openExternal = (url) => api.openExternal(url);
 
+// データの管理(画像の整理・書き出し)
+export const findUnusedImages = (extraTexts) => api.findUnusedImages(extraTexts);
+export const trashUnusedImages = (extraTexts) => api.trashUnusedImages(extraTexts);
+export const exportData = () => api.exportData();
+
 // ウィンドウの再描画(ダイアログを閉じた跡が残る環境への対策)
 export const repaintWindow = () => api.repaintWindow();
 

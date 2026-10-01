@@ -6,6 +6,7 @@
  *   - ページのCRUD(1ページ = 1つのJSONファイル)
  *   - 画像ファイルの保存
  *   - 全文検索
+ *   - 画像がどのページで使われているかの調査(画像の整理に使う)
  *
  * ページJSONの形式:
  *   {
@@ -257,6 +258,56 @@ function buildGraph() {
 }
 
 /**
+ * 文字列の中から "memo://images/<ファイル名>" のファイル名を拾う(純粋関数)。
+ * 本文HTMLにもトップ画像のURLにも、ページJSONの生の文字列にも使える。
+ */
+function extractImageNames(text) {
+  const names = new Set();
+  for (const m of String(text).matchAll(/memo:\/\/images\/([^"'\\\s<>)?#]+)/g)) {
+    names.add(path.basename(m[1]));
+  }
+  return names;
+}
+
+/**
+ * どこかのページで使われている画像のファイル名を集める。
+ *
+ * ページJSONは「読み込んで解釈する」のではなく「生の文字列として探す」。
+ * こうしておけば、壊れていて読めないページが使っている画像も
+ * 「使用中」として扱われ、画像の整理で消されることがない。
+ *
+ * @param {string[]} extraTexts まだ保存されていない編集中の本文など、追加で調べる文字列
+ * @returns {Set<string>}
+ */
+function collectUsedImages(extraTexts = []) {
+  const used = new Set();
+  const addAll = (text) => extractImageNames(text).forEach((name) => used.add(name));
+  // ファイル自体を開けない場合は例外のまま呼び出し元へ返し、整理そのものを中止させる
+  // (使われている画像を誤って消すより、整理できない方がよい)
+  for (const name of fs.readdirSync(pagesDir)) {
+    addAll(fs.readFileSync(path.join(pagesDir, name), 'utf8'));
+  }
+  for (const text of extraTexts) addAll(text);
+  return used;
+}
+
+/** 画像フォルダ内のファイル一覧 [{ name, size }] */
+function listImageFiles() {
+  return fs
+    .readdirSync(imagesDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => ({
+      name: entry.name,
+      size: fs.statSync(path.join(imagesDir, entry.name)).size,
+    }));
+}
+
+/** データフォルダ(pages / images の親)のパス(書き出しに使う) */
+function getDataDir() {
+  return path.dirname(pagesDir);
+}
+
+/**
  * 画像を保存する。
  * @param {Uint8Array} data 画像のバイナリ
  * @param {string} ext 拡張子("png" など)
@@ -272,6 +323,7 @@ function saveImage(data, ext) {
 module.exports = {
   init,
   getImagesDir,
+  getDataDir,
   listPages,
   loadPage,
   savePage,
@@ -279,6 +331,9 @@ module.exports = {
   searchPages,
   saveImage,
   buildGraph,
+  collectUsedImages,
+  listImageFiles,
+  extractImageNames,
   migratePage, // テスト用に公開
   extractLinkedIds, // テスト用に公開
 };

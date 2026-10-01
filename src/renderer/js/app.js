@@ -6,7 +6,7 @@
  *   - ページの読み込み・保存・削除・新規作成
  *   - エディタ画面と関連マップ画面の切り替え
  *   - 各モジュール(editor / cover / links / images / paste / pages / search /
- *     graph / updates / guide / whatsnew / repaint / toc)の初期化と連携
+ *     graph / updates / guide / whatsnew / repaint / toc / videos / datatools)の初期化と連携
  *
  * 個々の機能の詳細は各モジュールに任せ、ここでは
  * 「何をどの順番でつなぐか」だけを書く。
@@ -26,6 +26,7 @@ import * as whatsnew from './whatsnew.js';
 import * as repaint from './repaint.js';
 import * as toc from './toc.js';
 import * as videos from './videos.js';
+import * as datatools from './datatools.js';
 
 const titleInput = document.getElementById('page-title');
 const saveStatus = document.getElementById('save-status');
@@ -165,6 +166,16 @@ async function main() {
   whatsnew.init(); // 更新内容のお知らせ
   repaint.init(); // ダイアログを閉じた跡が残る環境への対策
   toc.init(); // 目次の挿入と自動更新
+
+  // データの管理(書き出し・画像の整理)。始める前に編集中のページを保存し、
+  // まだ保存されていない新規ページの内容も「使用中」として渡す
+  datatools.init({
+    prepare: async () => {
+      await saveCurrentPage({ silent: true });
+      const fields = collectFields();
+      return [fields.html, fields.cover];
+    },
+  });
 
   // ツールバー: 書式ボタン(data-cmd属性で共通処理)
   for (const btn of document.querySelectorAll('#toolbar button[data-cmd]')) {

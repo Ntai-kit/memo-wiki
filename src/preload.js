@@ -21,6 +21,13 @@ contextBridge.exposeInMainWorld('memoAPI', {
   // Web上の画像を取ってきて保存する(サムネイル用。失敗すると null)
   downloadImage: (url) => ipcRenderer.invoke('images:download', url),
 
+  // 使っていない画像の整理(探す / ごみ箱へ移す)
+  findUnusedImages: (extraTexts) => ipcRenderer.invoke('images:findUnused', extraTexts),
+  trashUnusedImages: (extraTexts) => ipcRenderer.invoke('images:trashUnused', extraTexts),
+
+  // メモの書き出し(フォルダを選ぶ画面が出る。やめたら null)
+  exportData: () => ipcRenderer.invoke('data:export'),
+
   // リンクカード用のメタデータ取得
   fetchMetadata: (url) => ipcRenderer.invoke('meta:fetch', url),
 

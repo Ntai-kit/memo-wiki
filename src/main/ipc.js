@@ -8,8 +8,10 @@
  * 新しい機能を追加するときは、ここにハンドラを1行追加し、
  * preload.js に対応するAPIを1行追加すればよい。
  */
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const metadata = require('./metadata');
+const cleanup = require('./cleanup');
+const exporter = require('./exporter');
 
 function register(storage, updater, whatsnew) {
   // ページ操作
@@ -32,6 +34,30 @@ function register(storage, updater, whatsnew) {
   ipcMain.handle('images:download', async (_e, url) => {
     const image = await metadata.fetchImage(url);
     return image ? storage.saveImage(image.data, image.ext) : null;
+  });
+
+  // 使っていない画像の整理。extraTexts は保存前の編集中の本文など(使用中として扱う)
+  ipcMain.handle('images:findUnused', (_e, extraTexts) => {
+    const files = cleanup.findUnusedImages(storage, extraTexts);
+    return { count: files.length, bytes: files.reduce((sum, f) => sum + f.size, 0) };
+  });
+  ipcMain.handle('images:trashUnused', (_e, extraTexts) =>
+    cleanup.trashUnusedImages(storage, extraTexts)
+  );
+
+  // メモの書き出し。書き出し先のフォルダを選んでもらい、終わったらそのフォルダを開く。
+  // 選ぶのをやめたときは null を返す。
+  ipcMain.handle('data:export', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const choice = await dialog.showOpenDialog(win, {
+      title: 'メモの書き出し先を選ぶ',
+      buttonLabel: 'ここに書き出す',
+      properties: ['openDirectory', 'createDirectory'],
+    });
+    if (choice.canceled || choice.filePaths.length === 0) return null;
+    const result = exporter.exportAll(storage, choice.filePaths[0]);
+    shell.openPath(result.path);
+    return result;
   });
 
   // アプリのバージョン(画面下部の表示に使う)

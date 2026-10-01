@@ -30,6 +30,7 @@
         <span id="app-version" title="このアプリのバージョン"></span>
         <div class="footer-buttons">
           <button id="btn-guide" title="使い方ガイドを開く">?</button>
+          <button id="btn-data" title="メモの書き出しや、使っていない画像の整理">データ</button>
           <button id="btn-check-update" title="新しいバージョンが出ていないか確認する">更新を確認</button>
         </div>
       </div>
@@ -233,6 +234,13 @@
         このフォルダをコピーすれば、それがそのままバックアップになります。
       </p>
 
+      <h3>書き出す・画像を整理する</h3>
+      <p>画面左下の <b>「データ」</b> ボタンから、次の2つができます。</p>
+      <table class="guide-table">
+        <tr><th>📤 メモを書き出す</th><td>すべてのメモを、ブラウザで読める形でフォルダに書き出します。アプリに戻すための元データも一緒に入ります</td></tr>
+        <tr><th>🧹 画像を整理する</th><td>どのメモからも使われていない画像を探して、ごみ箱へ移します。間違えたときはごみ箱から元に戻せます</td></tr>
+      </table>
+
       <h3>更新について</h3>
       <p>
         新しいバージョンが出ると、アプリが自分で見つけて用意します。
@@ -243,6 +251,30 @@
 
     <div class="guide-footer">
       <button id="btn-guide-ok">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- データの管理(サイドバー下部の「データ」ボタンで開く) -->
+  <dialog id="data-dialog">
+    <h3>データの管理</h3>
+
+    <h4>メモを書き出す</h4>
+    <p class="dialog-note">
+      すべてのメモを、ブラウザで読める形でフォルダに書き出します。
+      アプリに戻すための元データも一緒に入ります。
+    </p>
+    <button id="btn-data-export" class="wide">📤 書き出し先のフォルダを選ぶ</button>
+
+    <h4>使っていない画像を整理する</h4>
+    <p class="dialog-note">
+      どのメモからも使われていない画像(外したトップ画像や、消したカードのサムネイルなど)を探して、
+      ごみ箱へ移します。ごみ箱から元に戻せます。
+    </p>
+    <button id="btn-data-cleanup" class="wide">🧹 使っていない画像を探す</button>
+
+    <p id="data-dialog-status"></p>
+    <div class="dialog-actions">
+      <button id="btn-data-close">閉じる</button>
     </div>
   </dialog>
 
