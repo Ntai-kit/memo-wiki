@@ -11,8 +11,23 @@ export const listPages = () => api.listPages();
 export const loadPage = (id) => api.loadPage(id);
 export const savePage = (id, fields) => api.savePage(id, fields);
 export const deletePage = (id) => api.deletePage(id);
+export const movePage = (id, folderId) => api.movePage(id, folderId);
 export const searchPages = (query) => api.searchPages(query);
 export const buildGraph = () => api.buildGraph();
+
+// ごみ箱
+export const listTrash = () => api.listTrash();
+export const trashPage = (id) => api.trashPage(id);
+export const restorePage = (id) => api.restorePage(id);
+export const emptyTrash = () => api.emptyTrash();
+export const trashDays = () => api.trashDays();
+
+// フォルダ
+export const listFolders = () => api.listFolders();
+export const createFolder = (name, parentId) => api.createFolder(name, parentId);
+export const moveFolder = (id, parentId) => api.moveFolder(id, parentId);
+export const renameFolder = (id, name) => api.renameFolder(id, name);
+export const deleteFolder = (id) => api.deleteFolder(id);
 export const saveImage = (data, ext) => api.saveImage(data, ext);
 export const downloadImage = (url) => api.downloadImage(url);
 export const fetchMetadata = (url) => api.fetchMetadata(url);

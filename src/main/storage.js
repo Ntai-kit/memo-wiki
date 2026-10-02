@@ -5,17 +5,29 @@
  *   - 保存先フォルダ(pages / images)の管理
  *   - ページのCRUD(1ページ = 1つのJSONファイル)
  *   - 画像ファイルの保存
+ *   - フォルダの管理(folders.json)
+ *   - ごみ箱(ページに trashedAt を付けて一覧から外す。元に戻せる)
  *   - 全文検索
  *   - 画像がどのページで使われているかの調査(画像の整理に使う)
  *
  * ページJSONの形式:
  *   {
- *     "formatVersion": 2,
+ *     "formatVersion": 3,
  *     "id": "...", "title": "...",
  *     "subtitle": "...",           // タイトル下の1行見出し
  *     "cover": "memo://images/...", // ページ上部のトップ画像(空なら無し)
+ *     "folderId": "...",           // 入っているフォルダ(空なら未分類)
+ *     "trashedAt": "ISO日時",      // ごみ箱へ移した日時(空ならごみ箱に入っていない)
  *     "html": "...", "updatedAt": "ISO日時"
  *   }
+ *
+ * フォルダの一覧は data/folders.json に [{ id, name, parentId }] の形で持つ。
+ * parentId が空のフォルダが一番上の階層で、フォルダの中にフォルダを作れる。
+ * ページは0個か1個のフォルダに入る。
+ * 存在しないフォルダを指しているページ(フォルダを消したあとなど)は未分類として扱い、
+ * 存在しない親を指しているフォルダは一番上の階層として扱う。
+ *
+ * ごみ箱に入れてから TRASH_DAYS 日たったページは、起動時などに自動で完全に削除する。
  *
  * 本文はHTML文字列として保存する。画像は images/ に置き、
  * 本文からは "memo://images/<ファイル名>" で参照する
@@ -35,8 +47,11 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+/** ごみ箱のページを自動で完全に削除するまでの日数 */
+const TRASH_DAYS = 30;
+
 /** 現在のページファイル形式バージョン */
-const FORMAT_VERSION = 2;
+const FORMAT_VERSION = 3;
 
 /**
  * 移行関数の一覧。キーは「移行元のバージョン」。
@@ -46,6 +61,8 @@ const FORMAT_VERSION = 2;
 const MIGRATIONS = {
   // v1 → v2: トップ画像(cover)とサブタイトル(subtitle)を追加
   1: (page) => ({ ...page, cover: '', subtitle: '' }),
+  // v2 → v3: フォルダ(folderId)とごみ箱(trashedAt)を追加
+  2: (page) => ({ ...page, folderId: '', trashedAt: '' }),
 };
 
 /**
@@ -65,12 +82,14 @@ function migratePage(page) {
 
 let pagesDir = '';
 let imagesDir = '';
+let foldersFile = '';
 
 /** 保存先フォルダを準備する(userData/data 以下) */
 function init(userDataPath) {
   const dataDir = path.join(userDataPath, 'data');
   pagesDir = path.join(dataDir, 'pages');
   imagesDir = path.join(dataDir, 'images');
+  foldersFile = path.join(dataDir, 'folders.json');
   fs.mkdirSync(pagesDir, { recursive: true });
   fs.mkdirSync(imagesDir, { recursive: true });
 }
@@ -105,17 +124,39 @@ function readAllPages() {
   return pages;
 }
 
-/** 全ページのメタ情報一覧(更新日時の新しい順) */
+/** ごみ箱に入っていないページだけを読み込む(一覧・検索・マップ用) */
+function readActivePages() {
+  return readAllPages().filter((page) => !page.trashedAt);
+}
+
+/** 一覧に出すメタ情報。存在しないフォルダを指していれば未分類('')にそろえる */
+function toMeta(page, folderIds) {
+  return {
+    id: page.id,
+    title: page.title,
+    subtitle: page.subtitle,
+    cover: page.cover,
+    folderId: folderIds.has(page.folderId) ? page.folderId : '',
+    trashedAt: page.trashedAt || '',
+    updatedAt: page.updatedAt,
+  };
+}
+
+/** 全ページのメタ情報一覧(ごみ箱は除く。更新日時の新しい順) */
 function listPages() {
-  return readAllPages()
-    .map((page) => ({
-      id: page.id,
-      title: page.title,
-      subtitle: page.subtitle,
-      cover: page.cover,
-      updatedAt: page.updatedAt,
-    }))
+  const folderIds = new Set(listFolders().map((f) => f.id));
+  return readActivePages()
+    .map((page) => toMeta(page, folderIds))
     .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+}
+
+/** ごみ箱に入っているページの一覧(ごみ箱へ移した日時の新しい順) */
+function listTrash() {
+  const folderIds = new Set(listFolders().map((f) => f.id));
+  return readAllPages()
+    .filter((page) => page.trashedAt)
+    .map((page) => toMeta(page, folderIds))
+    .sort((a, b) => (a.trashedAt < b.trashedAt ? 1 : -1));
 }
 
 /** ページを1件読み込む(存在しなければ null。旧形式は自動移行) */
@@ -138,7 +179,9 @@ function loadPage(id) {
  * fields には変更したい項目だけを渡せばよく、省略した項目は
  * 保存済みの値が引き継がれる(例: マップからタイトルだけ変更する場合)。
  * @param {string|null} id
- * @param {{title?: string, html?: string, subtitle?: string, cover?: string}} fields
+ * フォルダとごみ箱の状態も引き継ぐので、ごみ箱にあるページを編集して保存しても
+ * ごみ箱から出ることはない(出すのは restorePage だけ)。
+ * @param {{title?: string, html?: string, subtitle?: string, cover?: string, folderId?: string}} fields
  */
 function savePage(id, fields = {}) {
   const existing = id ? loadPage(id) : null;
@@ -149,6 +192,8 @@ function savePage(id, fields = {}) {
     subtitle: pick(fields.subtitle, existing?.subtitle, ''),
     cover: pick(fields.cover, existing?.cover, ''),
     html: pick(fields.html, existing?.html, ''),
+    folderId: pick(fields.folderId, existing?.folderId, ''),
+    trashedAt: existing?.trashedAt || '',
     updatedAt: new Date().toISOString(),
   };
   writeFileAtomic(pageFile(page.id), JSON.stringify(page, null, 2));
@@ -174,10 +219,206 @@ function pick(...values) {
   return values.find((v) => v !== undefined && v !== null);
 }
 
-/** ページを削除する */
+/**
+ * 保存済みのページの一部の項目だけを書き換える。
+ * フォルダの移動やごみ箱への出し入れは「編集」ではないので、更新日時は変えない
+ * (変えると一覧の並び順が動いてしまう)。存在しなければ null を返す。
+ */
+function patchPage(id, changes) {
+  const existing = loadPage(id);
+  if (!existing) return null;
+  const page = { ...existing, ...changes, formatVersion: FORMAT_VERSION };
+  writeFileAtomic(pageFile(page.id), JSON.stringify(page, null, 2));
+  return page;
+}
+
+/** ページを別のフォルダへ移す(folderId が空なら未分類へ) */
+function movePage(id, folderId) {
+  const exists = !folderId || listFolders().some((f) => f.id === folderId);
+  if (!exists) throw new Error('移動先のフォルダが見つかりません');
+  return patchPage(id, { folderId: folderId || '' });
+}
+
+/** ページをごみ箱へ移す(ファイルは消さない) */
+function trashPage(id) {
+  return patchPage(id, { trashedAt: new Date().toISOString() });
+}
+
+/**
+ * ページをごみ箱から戻す。
+ * 入っていたフォルダがもう無ければ未分類に戻す。
+ */
+function restorePage(id) {
+  const page = loadPage(id);
+  if (!page) return null;
+  const folderExists = listFolders().some((f) => f.id === page.folderId);
+  return patchPage(id, { trashedAt: '', folderId: folderExists ? page.folderId : '' });
+}
+
+/** ページを完全に削除する(元に戻せない) */
 function deletePage(id) {
   const file = pageFile(id);
   if (fs.existsSync(file)) fs.unlinkSync(file);
+}
+
+/** ごみ箱を空にする。消したページの数を返す */
+function emptyTrash() {
+  const trashed = listTrash();
+  for (const page of trashed) deletePage(page.id);
+  return trashed.length;
+}
+
+/**
+ * ごみ箱に入れてから TRASH_DAYS 日以上たったページを完全に削除する。
+ * 消したページの数を返す。
+ * @param {Date} now 今の日時(テストで固定する)
+ */
+function purgeOldTrash(now = new Date()) {
+  const limit = now.getTime() - TRASH_DAYS * 24 * 60 * 60 * 1000;
+  let count = 0;
+  for (const page of listTrash()) {
+    const trashedAt = Date.parse(page.trashedAt);
+    // 日時が読めないものは消さない(誤って消すより、残しておく方がよい)
+    if (Number.isNaN(trashedAt) || trashedAt > limit) continue;
+    deletePage(page.id);
+    count += 1;
+  }
+  return count;
+}
+
+/* ---------- フォルダ ---------- */
+
+/**
+ * フォルダの一覧(名前順)。階層は parentId で表す。
+ * ファイルが無い、または読めないときは空の一覧として扱う
+ * (フォルダが読めなくてもページは未分類として全部見えるので、メモは失われない)。
+ * 存在しない親を指しているフォルダや、親をたどると自分に戻ってしまうフォルダは
+ * 一番上の階層にあるものとして返す。
+ */
+function listFolders() {
+  return normalizeFolders(readFolders()).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+}
+
+/** folders.json をそのまま読む(読めなければ空) */
+function readFolders() {
+  if (!fs.existsSync(foldersFile)) return [];
+  try {
+    const data = JSON.parse(fs.readFileSync(foldersFile, 'utf8'));
+    return (Array.isArray(data.folders) ? data.folders : []).filter(
+      (f) => f && typeof f.id === 'string' && typeof f.name === 'string'
+    );
+  } catch (error) {
+    console.warn('[storage] フォルダの一覧を読み込めませんでした', error.message);
+    return [];
+  }
+}
+
+/** 親のつながりを正しい形にそろえる(純粋関数) */
+function normalizeFolders(folders) {
+  const byId = new Map(folders.map((f) => [f.id, f]));
+  return folders.map((folder) => {
+    const parentId = typeof folder.parentId === 'string' ? folder.parentId : '';
+    if (!byId.has(parentId) || isCycle(folder.id, parentId, byId)) {
+      return { ...folder, parentId: '' };
+    }
+    return { ...folder, parentId };
+  });
+}
+
+/** parentId から親をたどって id に戻ってくるなら true(親子の輪ができている) */
+function isCycle(id, parentId, byId) {
+  const seen = new Set();
+  let current = parentId;
+  while (current && !seen.has(current)) {
+    if (current === id) return true;
+    seen.add(current);
+    current = byId.get(current)?.parentId || '';
+  }
+  return Boolean(current); // 途中で同じ所を回り続けるときも輪とみなす
+}
+
+/** id のフォルダと、その中に入っているすべてのフォルダのID */
+function descendantIds(id, folders = listFolders()) {
+  const ids = new Set([id]);
+  let added = true;
+  while (added) {
+    added = false;
+    for (const f of folders) {
+      if (ids.has(f.parentId) && !ids.has(f.id)) {
+        ids.add(f.id);
+        added = true;
+      }
+    }
+  }
+  return ids;
+}
+
+function writeFolders(folders) {
+  writeFileAtomic(foldersFile, JSON.stringify({ formatVersion: 2, folders }, null, 2));
+}
+
+/** フォルダ名を整える。空なら例外 */
+function cleanFolderName(name) {
+  const cleaned = String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, 50);
+  if (!cleaned) throw new Error('フォルダの名前が空です');
+  return cleaned;
+}
+
+/**
+ * フォルダを作る。作ったフォルダ { id, name, parentId } を返す。
+ * @param {string} name
+ * @param {string} parentId 親のフォルダ(空なら一番上の階層)
+ */
+function createFolder(name, parentId = '') {
+  const folders = listFolders();
+  if (parentId && !folders.some((f) => f.id === parentId)) {
+    throw new Error('親のフォルダが見つかりません');
+  }
+  const folder = { id: crypto.randomUUID(), name: cleanFolderName(name), parentId: parentId || '' };
+  writeFolders([...folders, folder]);
+  return folder;
+}
+
+/** フォルダの名前を変える */
+function renameFolder(id, name) {
+  const cleaned = cleanFolderName(name);
+  writeFolders(listFolders().map((f) => (f.id === id ? { ...f, name: cleaned } : f)));
+}
+
+/**
+ * フォルダを別のフォルダの中へ移す(parentId が空なら一番上の階層へ)。
+ * 自分自身や、自分の中にあるフォルダへは移せない。
+ */
+function moveFolder(id, parentId) {
+  const folders = listFolders();
+  if (!folders.some((f) => f.id === id)) throw new Error('フォルダが見つかりません');
+  if (parentId) {
+    if (!folders.some((f) => f.id === parentId)) throw new Error('移動先のフォルダが見つかりません');
+    if (descendantIds(id, folders).has(parentId)) {
+      throw new Error('フォルダを自分の中へは移せません');
+    }
+  }
+  writeFolders(folders.map((f) => (f.id === id ? { ...f, parentId: parentId || '' } : f)));
+}
+
+/**
+ * フォルダを消す。中身は消さず、ひとつ上の階層へ移す
+ * (一番上の階層のフォルダなら、中のページは未分類へ、中のフォルダは一番上の階層へ移る)。
+ * ごみ箱にあるページも移すので、戻したときに消えたフォルダを指さない。
+ */
+function deleteFolder(id) {
+  const folders = listFolders();
+  const target = folders.find((f) => f.id === id);
+  if (!target) return;
+  const parentId = target.parentId || '';
+  for (const page of readAllPages()) {
+    if (page.folderId === id) patchPage(page.id, { folderId: parentId });
+  }
+  writeFolders(
+    folders
+      .filter((f) => f.id !== id)
+      .map((f) => (f.parentId === id ? { ...f, parentId } : f))
+  );
 }
 
 /** HTMLからタグを除いた素のテキストを取り出す(検索用) */
@@ -192,7 +433,7 @@ function htmlToText(html) {
 function searchPages(query) {
   const q = query.toLowerCase();
   const results = [];
-  for (const page of readAllPages()) {
+  for (const page of readActivePages()) {
     const text = htmlToText(page.html);
     const inTitle =
       page.title.toLowerCase().includes(q) || (page.subtitle || '').toLowerCase().includes(q);
@@ -228,10 +469,10 @@ function extractLinkedIds(html) {
  *   nodes: [{ id, title, subtitle, cover, degree }],
  *   edges: [{ from, to }]   // from のページが to のページへリンクしている
  * }
- * 削除済みページへのリンクは辺に含めない(存在するページ同士だけを結ぶ)。
+ * 削除済みページやごみ箱にあるページへのリンクは辺に含めない(存在するページ同士だけを結ぶ)。
  */
 function buildGraph() {
-  const pages = readAllPages();
+  const pages = readActivePages();
   const existingIds = new Set(pages.map((p) => p.id));
 
   const edges = [];
@@ -325,9 +566,21 @@ module.exports = {
   getImagesDir,
   getDataDir,
   listPages,
+  listTrash,
   loadPage,
   savePage,
+  movePage,
+  trashPage,
+  restorePage,
   deletePage,
+  emptyTrash,
+  purgeOldTrash,
+  TRASH_DAYS,
+  listFolders,
+  createFolder,
+  renameFolder,
+  moveFolder,
+  deleteFolder,
   searchPages,
   saveImage,
   buildGraph,

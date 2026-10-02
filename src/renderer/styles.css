@@ -77,6 +77,138 @@ body {
   margin-top: 2px;
 }
 
+/* 一覧の見出し(ページ / ごみ箱) */
+#list-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: #666;
+}
+
+#list-title { margin-right: auto; font-weight: bold; }
+
+#list-header button {
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #555;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+#list-header button:hover:not(:disabled) { background: #eef1fb; color: var(--text); }
+#list-header button:disabled { opacity: 0.5; cursor: default; }
+#list-header button[hidden] { display: none; }
+
+/* フォルダの見出し行 */
+#page-list li.folder-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #444;
+  background: #eeeef4;
+  user-select: none;
+}
+
+#page-list li.folder-row.unfiled { color: #777; font-weight: normal; }
+#page-list li.folder-row:hover { background: #e4e6ef; }
+/* 選んでいるフォルダ(「+ 新規ページ」「+ フォルダ」の作成先) */
+#page-list li.folder-row.current {
+  background: #dfe6f7;
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* 開いているかどうかの目印 ▾/▸(開閉は見出しのダブルクリック) */
+.folder-toggle {
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+  color: #888;
+}
+
+#page-list li.folder-row.drop-target { background: #d6e0f8; outline: 2px dashed var(--accent); }
+
+.folder-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-count { font-size: 11px; font-weight: normal; color: #999; }
+
+/* 見出しの小さなボタンは、マウスを乗せたときだけ出す */
+.folder-actions { display: none; gap: 3px; }
+#page-list li.folder-row:hover .folder-actions { display: flex; }
+
+.folder-actions button,
+.trash-actions button {
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: normal;
+  cursor: pointer;
+  color: #555;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.folder-actions button:hover,
+.trash-actions button:hover { background: #eef1fb; color: var(--text); }
+
+/* ごみ箱の一覧の上に出す説明 */
+#page-list li.list-note {
+  cursor: default;
+  font-size: 11px;
+  color: #888;
+  line-height: 1.5;
+  padding: 6px 12px;
+  background: transparent;
+}
+
+#page-list li.list-note:hover { background: transparent; }
+
+/* ごみ箱の行 */
+.trash-actions { display: flex; gap: 4px; margin-top: 5px; }
+#page-list li.trash-item { color: #666; }
+
+#page-list li.list-empty {
+  cursor: default;
+  color: #999;
+  font-size: 13px;
+  text-align: center;
+  padding: 24px 12px;
+  border-bottom: none;
+}
+
+#page-list li.list-empty:hover { background: transparent; }
+
+/* 一覧の下の「ごみ箱」ボタン */
+#btn-trash {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  color: #666;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+#btn-trash::before { content: "🗑 "; }
+#btn-trash:hover { background: #ececf3; color: var(--text); }
+#btn-trash.active { background: #e2e8f8; color: var(--text); font-weight: bold; }
+
 /* サイドバー下部: バージョン表示と更新確認 */
 #sidebar-footer {
   display: flex;
@@ -218,6 +350,41 @@ body {
   padding: 4px 0;
   outline: none;
 }
+
+/* ページを入れるフォルダの選択欄 */
+#page-folder-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 6px;
+  font-size: 12px;
+  color: #888;
+}
+
+#page-folder {
+  font-size: 12px;
+  padding: 1px 4px;
+  color: #555;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+}
+
+/* ごみ箱にあるページを開いたときの案内 */
+#trash-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  font-size: 13px;
+  color: #7a4b00;
+  background: #fff4dc;
+  border-bottom: 1px solid #f0d9a6;
+}
+
+#trash-banner[hidden] { display: none; }
+#trash-banner span { margin-right: auto; }
+#trash-banner button { padding: 3px 10px; font-size: 12px; cursor: pointer; }
 
 #page-subtitle {
   font-size: 14px;

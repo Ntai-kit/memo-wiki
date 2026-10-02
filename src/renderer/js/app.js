@@ -3,10 +3,11 @@
  *
  * 責務:
  *   - 「いま開いているページ」の状態管理
- *   - ページの読み込み・保存・削除・新規作成
+ *   - ページの読み込み・保存・新規作成
+ *   - ごみ箱への出し入れと完全な削除
  *   - エディタ画面と関連マップ画面の切り替え
  *   - 各モジュール(editor / cover / links / images / paste / pages / search /
- *     graph / updates / guide / whatsnew / repaint / toc / videos / datatools)の初期化と連携
+ *     graph / updates / guide / whatsnew / repaint / toc / videos / datatools / folders)の初期化と連携
  *
  * 個々の機能の詳細は各モジュールに任せ、ここでは
  * 「何をどの順番でつなぐか」だけを書く。
@@ -27,11 +28,13 @@ import * as repaint from './repaint.js';
 import * as toc from './toc.js';
 import * as videos from './videos.js';
 import * as datatools from './datatools.js';
+import * as folders from './folders.js';
 
 const titleInput = document.getElementById('page-title');
 const saveStatus = document.getElementById('save-status');
 const editorPane = document.getElementById('editor-pane');
 const mapPane = document.getElementById('map-pane');
+const trashBanner = document.getElementById('trash-banner');
 
 let currentPageId = null; // 開いているページのID(未保存の新規ページは null)
 
@@ -44,6 +47,7 @@ function collectFields() {
     subtitle: cover.getSubtitle(),
     cover: cover.getCover(),
     html: editor.getHTML(),
+    folderId: folders.getSelected(),
   };
 }
 
@@ -55,6 +59,9 @@ async function openPage(pageId) {
   currentPageId = page.id;
   titleInput.value = page.title;
   cover.setPage({ cover: page.cover, subtitle: page.subtitle });
+  folders.setSelected(page.folderId);
+  pages.setCurrentFolder(page.folderId); // 「+ 新規ページ」などはこのページのフォルダに作る
+  trashBanner.hidden = !page.trashedAt;
   editor.setHTML(page.html);
   toc.refresh(); // 保存されていた目次を最新の見出しで作り直す
   pages.setActive(page.id);
@@ -88,33 +95,88 @@ async function saveCurrentPage({ silent = false } = {}) {
   if (!silent) setStatus(`保存しました(${new Date().toLocaleTimeString()})`);
 }
 
-/** 空の新規ページを開く */
+/**
+ * 空の新規ページを開く。
+ * サイドバーで選んでいるフォルダ(開いていたページのフォルダ)に入れる。
+ */
 async function newPage() {
   await saveCurrentPage({ silent: true });
-  currentPageId = null;
-  titleInput.value = '';
-  cover.setPage({ cover: '', subtitle: '' });
-  editor.setHTML('');
-  pages.setActive(null);
+  const folderId = pages.getCurrentFolder();
+  clearEditor();
+  folders.setSelected(folderId);
   search.clear();
-  await pages.refresh();
+  await pages.showPages(); // ごみ箱を見ていたときも、ページ一覧に戻す
   showEditor();
   titleInput.focus();
 }
 
-/** 現在のページを削除する */
-async function deleteCurrentPage() {
-  if (currentPageId === null) return;
-  const ok = confirm(`「${titleInput.value}」を削除しますか?`);
-  if (!ok) return;
-  await api.deletePage(currentPageId);
+/** 編集欄を空にする(どのページも開いていない状態にする) */
+function clearEditor() {
   currentPageId = null;
   titleInput.value = '';
   cover.setPage({ cover: '', subtitle: '' });
+  folders.setSelected('');
+  trashBanner.hidden = true;
   editor.setHTML('');
-  await pages.refresh();
   pages.setActive(null); // 一覧に消したページの選択が残らないようにする
+}
+
+/**
+ * 現在のページをごみ箱へ移す。
+ * ごみ箱から元に戻せるので確認は出さない。ごみ箱にあるページなら完全に削除する。
+ */
+async function deleteCurrentPage() {
+  if (currentPageId === null) return;
+  if (!trashBanner.hidden) {
+    await deleteForever(currentPageId);
+    return;
+  }
+  await saveCurrentPage({ silent: true });
+  await api.trashPage(currentPageId);
+  clearEditor();
+  await pages.refresh();
+  setStatus('ごみ箱へ移しました');
+}
+
+/** ごみ箱からページを戻す。開いているページなら案内を消す */
+async function restorePage(pageId) {
+  await api.restorePage(pageId);
+  if (pageId === currentPageId) trashBanner.hidden = true;
+  await pages.refresh();
+  setStatus('ページを元に戻しました');
+}
+
+/** ページを完全に削除する(確認してから) */
+async function deleteForever(pageId) {
+  const page = await api.loadPage(pageId);
+  const title = page ? page.title : '';
+  const ok = confirm(`「${title}」を完全に削除しますか?\nこの操作は元に戻せません。`);
+  if (!ok) return;
+  await api.deletePage(pageId);
+  if (pageId === currentPageId) clearEditor();
+  await pages.refresh();
   setStatus('');
+}
+
+/** ごみ箱を空にする(確認してから) */
+async function emptyTrash() {
+  const trashed = await api.listTrash();
+  if (trashed.length === 0) return;
+  const ok = confirm(`ごみ箱の${trashed.length}ページを完全に削除しますか?\nこの操作は元に戻せません。`);
+  if (!ok) return;
+  const openIsTrashed = trashed.some((p) => p.id === currentPageId);
+  await api.emptyTrash();
+  if (openIsTrashed) clearEditor();
+  await pages.refresh();
+  setStatus(`${trashed.length}ページを完全に削除しました`);
+}
+
+/** 選択欄でフォルダを選び直したら、すぐにそのフォルダへ移す */
+async function changeFolder(folderId) {
+  pages.setCurrentFolder(folderId);
+  if (currentPageId === null) return; // 新規ページは保存するときに入る
+  await api.movePage(currentPageId, folderId);
+  await pages.refresh();
 }
 
 /**
@@ -154,7 +216,25 @@ async function showMap() {
 
 async function main() {
   // 各モジュールを初期化し、必要なコールバックを渡す
-  pages.init(openPage);
+  pages.init({
+    open: openPage,
+    moved: (pageId, folderId) => {
+      if (pageId !== currentPageId) return;
+      folders.setSelected(folderId);
+      pages.setCurrentFolder(folderId);
+    },
+    // 開いているページの入り先がひとつ上の階層に変わっていることがあるので、
+    // 保存されている入り先に選択欄を合わせ直す(合わせないと、次の保存で未分類へ移ってしまう)
+    folderDeleted: async () => {
+      if (currentPageId === null) return;
+      const page = await api.loadPage(currentPageId);
+      if (page) folders.setSelected(page.folderId);
+    },
+    restore: restorePage,
+    deleteForever,
+    emptyTrash,
+  });
+  folders.init(changeFolder);
   search.init();
   images.init();
   paste.init(); // 貼り付け・ドロップの受け口(内容を浄化してから挿入)
@@ -186,6 +266,14 @@ async function main() {
   document.getElementById('btn-save').addEventListener('click', () => saveCurrentPage());
   document.getElementById('btn-delete').addEventListener('click', deleteCurrentPage);
   document.getElementById('btn-new-page').addEventListener('click', newPage);
+
+  // ごみ箱にあるページの案内
+  document.getElementById('btn-banner-restore').addEventListener('click', () =>
+    restorePage(currentPageId)
+  );
+  document.getElementById('btn-banner-delete').addEventListener('click', () =>
+    deleteForever(currentPageId)
+  );
 
   // 画面切り替え
   document.getElementById('btn-map').addEventListener('click', showMap);

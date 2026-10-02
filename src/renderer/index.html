@@ -11,7 +11,7 @@
 </head>
 <body>
   <div id="app">
-    <!-- 左サイドバー: 検索とページ一覧 -->
+    <!-- 左サイドバー: 検索とページ一覧(フォルダごと) / ごみ箱 -->
     <aside id="sidebar">
       <div class="sidebar-header">
         <button id="btn-new-page" title="新しいページを作成">+ 新規ページ</button>
@@ -23,7 +23,15 @@
         placeholder="検索(タイトル・本文)"
         autocomplete="off"
       />
+      <!-- 一覧の見出し。ページ一覧とごみ箱で中身が切り替わる -->
+      <div id="list-header">
+        <span id="list-title">ページ</span>
+        <button id="btn-new-folder" title="新しいフォルダを作る">+ フォルダ</button>
+        <button id="btn-empty-trash" title="ごみ箱のページをすべて完全に削除する" hidden>空にする</button>
+        <button id="btn-trash-back" title="ページ一覧に戻る" hidden>← 戻る</button>
+      </div>
       <ul id="page-list"></ul>
+      <button id="btn-trash" title="ごみ箱へ移したページを見る">ごみ箱</button>
 
       <!-- サイドバー下部: バージョン表示と手動の更新確認 -->
       <div id="sidebar-footer">
@@ -52,12 +60,19 @@
         <button id="btn-image" title="画像ファイルを挿入">🖼 画像</button>
         <span class="toolbar-sep"></span>
         <button id="btn-save" title="保存 (Ctrl+S)">💾 保存</button>
-        <button id="btn-delete" title="このページを削除">🗑 削除</button>
+        <button id="btn-delete" title="このページをごみ箱へ移す">🗑 削除</button>
         <span id="save-status"></span>
       </div>
 
       <!-- スクロールする領域: トップ画像 → 見出し → 本文 -->
       <div id="page-scroll">
+        <!-- ごみ箱にあるページを開いたときだけ出す -->
+        <div id="trash-banner" hidden>
+          <span>このページはごみ箱にあります。</span>
+          <button id="btn-banner-restore">元に戻す</button>
+          <button id="btn-banner-delete">完全に削除</button>
+        </div>
+
         <!-- トップ画像(カバー)。未設定のときは非表示 -->
         <div id="cover-area" hidden>
           <img id="cover-image" alt="" />
@@ -71,6 +86,10 @@
           <button id="btn-cover-add" title="ページ上部に大きな画像を追加する">🖼 トップ画像を追加</button>
           <input id="page-title" type="text" placeholder="ページタイトル" />
           <input id="page-subtitle" type="text" placeholder="サブタイトル(1行の説明)" />
+          <label id="page-folder-row" title="このページを入れるフォルダ">
+            フォルダ
+            <select id="page-folder"></select>
+          </label>
         </div>
 
         <!-- 本文(contenteditable によるWYSIWYG編集) -->
@@ -275,6 +294,19 @@
     <p id="data-dialog-status"></p>
     <div class="dialog-actions">
       <button id="btn-data-close">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- フォルダの名前を入力するダイアログ(作成・名前変更) -->
+  <dialog id="folder-dialog">
+    <h3 id="folder-dialog-title">新しいフォルダ</h3>
+    <label class="dialog-field">
+      <span>フォルダの名前</span>
+      <input id="folder-name" type="text" maxlength="50" autocomplete="off" />
+    </label>
+    <div class="dialog-actions">
+      <button id="btn-folder-cancel">やめる</button>
+      <button id="btn-folder-ok">作る</button>
     </div>
   </dialog>
 

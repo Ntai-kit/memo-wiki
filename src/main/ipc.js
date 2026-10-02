@@ -19,6 +19,21 @@ function register(storage, updater, whatsnew) {
   ipcMain.handle('pages:load', (_e, id) => storage.loadPage(id));
   ipcMain.handle('pages:save', (_e, id, fields) => storage.savePage(id, fields));
   ipcMain.handle('pages:delete', (_e, id) => storage.deletePage(id));
+  ipcMain.handle('pages:move', (_e, id, folderId) => storage.movePage(id, folderId));
+
+  // ごみ箱
+  ipcMain.handle('trash:list', () => storage.listTrash());
+  ipcMain.handle('trash:put', (_e, id) => storage.trashPage(id));
+  ipcMain.handle('trash:restore', (_e, id) => storage.restorePage(id));
+  ipcMain.handle('trash:empty', () => storage.emptyTrash());
+  ipcMain.handle('trash:days', () => storage.TRASH_DAYS);
+
+  // フォルダ
+  ipcMain.handle('folders:list', () => storage.listFolders());
+  ipcMain.handle('folders:create', (_e, name, parentId) => storage.createFolder(name, parentId));
+  ipcMain.handle('folders:move', (_e, id, parentId) => storage.moveFolder(id, parentId));
+  ipcMain.handle('folders:rename', (_e, id, name) => storage.renameFolder(id, name));
+  ipcMain.handle('folders:delete', (_e, id) => storage.deleteFolder(id));
   ipcMain.handle('pages:search', (_e, query) => storage.searchPages(query));
   ipcMain.handle('pages:graph', () => storage.buildGraph());
 

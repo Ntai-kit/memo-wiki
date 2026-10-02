@@ -11,9 +11,24 @@ contextBridge.exposeInMainWorld('memoAPI', {
   listPages: () => ipcRenderer.invoke('pages:list'),
   loadPage: (id) => ipcRenderer.invoke('pages:load', id),
   savePage: (id, fields) => ipcRenderer.invoke('pages:save', id, fields),
-  deletePage: (id) => ipcRenderer.invoke('pages:delete', id),
+  deletePage: (id) => ipcRenderer.invoke('pages:delete', id), // 完全に削除(元に戻せない)
+  movePage: (id, folderId) => ipcRenderer.invoke('pages:move', id, folderId),
   searchPages: (query) => ipcRenderer.invoke('pages:search', query),
   buildGraph: () => ipcRenderer.invoke('pages:graph'),
+
+  // ごみ箱
+  listTrash: () => ipcRenderer.invoke('trash:list'),
+  trashPage: (id) => ipcRenderer.invoke('trash:put', id),
+  restorePage: (id) => ipcRenderer.invoke('trash:restore', id),
+  emptyTrash: () => ipcRenderer.invoke('trash:empty'),
+  trashDays: () => ipcRenderer.invoke('trash:days'), // 自動で完全に削除するまでの日数
+
+  // フォルダ
+  listFolders: () => ipcRenderer.invoke('folders:list'),
+  createFolder: (name, parentId) => ipcRenderer.invoke('folders:create', name, parentId),
+  moveFolder: (id, parentId) => ipcRenderer.invoke('folders:move', id, parentId),
+  renameFolder: (id, name) => ipcRenderer.invoke('folders:rename', id, name),
+  deleteFolder: (id) => ipcRenderer.invoke('folders:delete', id),
 
   // 画像保存(Uint8Array と拡張子を渡すと memo:// のURLが返る)
   saveImage: (data, ext) => ipcRenderer.invoke('images:save', data, ext),

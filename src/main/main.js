@@ -84,6 +84,19 @@ app.setPath('userData', path.join(app.getPath('appData'), 'memo-wiki'));
 // "memo://" スキームの事前登録(app.ready より前に必要)
 protocol.registerScheme();
 
+/** ごみ箱の古いページを消す処理を、起動後に繰り返す間隔(6時間) */
+const PURGE_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
+/** ごみ箱の古いページを消す。失敗してもアプリは止めない */
+function purgeOldTrash() {
+  try {
+    const count = storage.purgeOldTrash();
+    if (count > 0) console.log(`[trash] ${storage.TRASH_DAYS}日たったページを${count}件削除しました`);
+  } catch (error) {
+    console.warn('[trash] ごみ箱の整理に失敗しました', error.message);
+  }
+}
+
 // 既定のメニューバー(File / Edit / View / Window / Help)を消す。
 // このアプリの操作はすべて画面内のボタンで行うため不要である。
 Menu.setApplicationMenu(null);
@@ -97,6 +110,8 @@ app.whenReady().then(() => {
   backup.runIfVersionChanged(app.getPath('userData'), app.getVersion());
 
   storage.init(app.getPath('userData')); // 保存先フォルダの準備
+  purgeOldTrash(); // ごみ箱に入れてから30日たったページを完全に削除
+  setInterval(purgeOldTrash, PURGE_INTERVAL_MS); // 開いたままでも日をまたげば消えるように
   protocol.registerHandler(storage);     // memo:// で画像を配信
   ipc.register(storage, updater, whatsnew); // IPCハンドラの登録
   updater.init(createWindow());          // ウィンドウ生成 + 自動アップデート開始
