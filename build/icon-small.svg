@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Memo Wiki のアイコン(32px以下用)。小さくても潰れないよう、線を太くし丸を塗りつぶしている -->
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="#f4f6fc" stroke="#aeb8d4" stroke-width="12"/>
+  <path d="M54 82 L94 182 L128 116 L162 182 L202 82" fill="none" stroke="#3366cc" stroke-width="28" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="54" cy="82" r="28" fill="#3366cc"/>
+  <circle cx="202" cy="82" r="28" fill="#3366cc"/>
+  <circle cx="94" cy="182" r="28" fill="#3366cc"/>
+  <circle cx="162" cy="182" r="28" fill="#3366cc"/>
+  <circle cx="128" cy="116" r="32" fill="#3366cc"/>
+</svg>

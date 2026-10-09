@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Memo Wiki のアイコン(48px以上用)。点と線でメモ同士のつながりと W(Wiki)を表す -->
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="#f4f6fc"/>
+  <rect x="8.5" y="8.5" width="239" height="239" rx="55.5" fill="none" stroke="#d5dbec"/>
+  <path d="M56 84 L94 176 L128 112 L162 176 L200 84" fill="none" stroke="#3366cc" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="56" cy="84" r="20" fill="#fff" stroke="#3366cc" stroke-width="10"/>
+  <circle cx="200" cy="84" r="20" fill="#fff" stroke="#3366cc" stroke-width="10"/>
+  <circle cx="94" cy="176" r="20" fill="#fff" stroke="#3366cc" stroke-width="10"/>
+  <circle cx="162" cy="176" r="20" fill="#fff" stroke="#3366cc" stroke-width="10"/>
+  <circle cx="128" cy="112" r="24" fill="#3366cc"/>
+</svg>
