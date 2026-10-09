@@ -10,12 +10,61 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- ボタンに使うアイコンの定義(線で描いた図形)。
+       各ボタンは <svg class="icon"><use href="#i-名前" /></svg> で参照する。
+       色は周りの文字と同じになり、線の太さは styles.css の .icon で決める -->
+  <svg class="icon-defs" aria-hidden="true">
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24">
+      <circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="9" r="2.5" /><circle cx="9" cy="18" r="2.5" />
+      <path d="M8.3 7l7.4 1.5M7 8.4l1.4 7.2M16.3 10.8l-5.4 5.6" />
+    </symbol>
+    <symbol id="i-folder-plus" viewBox="0 0 24 24">
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M12 10.5v5M9.5 13h5" />
+    </symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+    </symbol>
+    <symbol id="i-h1" viewBox="0 0 24 24"><path d="M4 6v12M12 6v12M4 12h8M17 10l2.5-2v10" /></symbol>
+    <symbol id="i-h2" viewBox="0 0 24 24"><path d="M4 6v12M12 6v12M4 12h8M16 10a2.3 2.3 0 1 1 4 1.6L16 18h4.5" /></symbol>
+    <symbol id="i-bold" viewBox="0 0 24 24"><path class="icon-heavy" d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z" /></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24">
+      <path d="M10 6h10M10 12h10M10 18h10" /><circle cx="5" cy="6" r="1" /><circle cx="5" cy="12" r="1" /><circle cx="5" cy="18" r="1" />
+    </symbol>
+    <symbol id="i-toc" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7 8h10M9.5 12h7.5M9.5 16h7.5" />
+    </symbol>
+    <symbol id="i-link" viewBox="0 0 24 24">
+      <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+    </symbol>
+    <symbol id="i-unlink" viewBox="0 0 24 24">
+      <path d="M15 7h2a5 5 0 0 1 0 10h-2M9 17H7A5 5 0 0 1 7 7h2" /><path d="M12 3v3M12 18v3" />
+    </symbol>
+    <symbol id="i-image" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="M21 15l-5-5L5 21" />
+    </symbol>
+    <symbol id="i-save" viewBox="0 0 24 24">
+      <path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M7 21v-7h10v7M7 3v4h8" />
+    </symbol>
+    <symbol id="i-export" viewBox="0 0 24 24">
+      <path d="M12 15V3M7 8l5-5 5 5M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.5-4.5" /></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24">
+      <rect x="2" y="5" width="20" height="14" rx="2" /><rect x="5" y="8.5" width="6" height="7" rx="1" /><path d="M14 10h5M14 14h3" />
+    </symbol>
+    <symbol id="i-video" viewBox="0 0 24 24">
+      <rect x="2" y="5" width="20" height="14" rx="3" /><path class="icon-fill" d="M10 9.2v5.6l4.8-2.8z" />
+    </symbol>
+  </svg>
+
   <div id="app">
     <!-- 左サイドバー: 検索とページ一覧(フォルダごと) / ごみ箱 -->
     <aside id="sidebar">
       <div class="sidebar-header">
-        <button id="btn-new-page" title="新しいページを作成">+ 新規ページ</button>
-        <button id="btn-map" title="メモ同士の関連をマップで見る">🗺 関連マップ</button>
+        <button id="btn-new-page" class="btn-primary" title="新しいページを作成"><svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg>新規ページ</button>
+        <button id="btn-map" title="メモ同士の関連をマップで見る"><svg class="icon" aria-hidden="true"><use href="#i-map" /></svg>関連マップ</button>
       </div>
       <input
         id="search-input"
@@ -26,18 +75,18 @@
       <!-- 一覧の見出し。ページ一覧とごみ箱で中身が切り替わる -->
       <div id="list-header">
         <span id="list-title">ページ</span>
-        <button id="btn-new-folder" title="新しいフォルダを作る">+ フォルダ</button>
-        <button id="btn-empty-trash" title="ごみ箱のページをすべて完全に削除する" hidden>空にする</button>
-        <button id="btn-trash-back" title="ページ一覧に戻る" hidden>← 戻る</button>
+        <button id="btn-new-folder" title="新しいフォルダを作る"><svg class="icon" aria-hidden="true"><use href="#i-folder-plus" /></svg>フォルダ</button>
+        <button id="btn-empty-trash" class="btn-danger" title="ごみ箱のページをすべて完全に削除する" hidden>空にする</button>
+        <button id="btn-trash-back" title="ページ一覧に戻る" hidden><svg class="icon" aria-hidden="true"><use href="#i-back" /></svg>戻る</button>
       </div>
       <ul id="page-list"></ul>
-      <button id="btn-trash" title="ごみ箱へ移したページを見る">ごみ箱</button>
+      <button id="btn-trash" title="ごみ箱へ移したページを見る"><svg class="icon" aria-hidden="true"><use href="#i-trash" /></svg><span class="btn-label">ごみ箱</span></button>
 
-      <!-- サイドバー下部: バージョン表示と手動の更新確認 -->
+      <!-- サイドバー下部: 1段目にバージョンとガイド、2段目にデータの管理と更新確認 -->
       <div id="sidebar-footer">
         <span id="app-version" title="このアプリのバージョン"></span>
+        <button id="btn-guide" title="使い方ガイドを開く">?</button>
         <div class="footer-buttons">
-          <button id="btn-guide" title="使い方ガイドを開く">?</button>
           <button id="btn-data" title="メモの書き出しや、使っていない画像の整理">データ</button>
           <button id="btn-check-update" title="新しいバージョンが出ていないか確認する">更新を確認</button>
         </div>
@@ -48,19 +97,18 @@
     <main id="editor-pane">
       <!-- ツールバー: すべてクリック操作で書式を設定する -->
       <div id="toolbar">
-        <button data-cmd="heading1" title="大見出しにする(目次の「1.」になる)">大見出し</button>
-        <button data-cmd="heading2" title="小見出しにする(目次の「1.1」になる)">小見出し</button>
-        <button data-cmd="bold" title="太字 (Ctrl+B)"><b>B</b></button>
-        <button data-cmd="list" title="箇条書き">・リスト</button>
+        <button data-cmd="heading1" title="大見出しにする(目次の「1.」になる)"><svg class="icon" aria-hidden="true"><use href="#i-h1" /></svg>大見出し</button>
+        <button data-cmd="heading2" title="小見出しにする(目次の「1.1」になる)"><svg class="icon" aria-hidden="true"><use href="#i-h2" /></svg>小見出し</button>
+        <button data-cmd="bold" title="太字 (Ctrl+B)"><svg class="icon" aria-hidden="true"><use href="#i-bold" /></svg>太字</button>
+        <button data-cmd="list" title="箇条書き"><svg class="icon" aria-hidden="true"><use href="#i-list" /></svg>リスト</button>
         <span class="toolbar-sep"></span>
-        <button id="btn-toc" title="この位置に目次を入れる。見出しから自動で作られる">📑 目次</button>
+        <button id="btn-toc" title="この位置に目次を入れる。見出しから自動で作られる"><svg class="icon" aria-hidden="true"><use href="#i-toc" /></svg>目次</button>
+        <button id="btn-link" title="文字にリンクを埋め込む (Ctrl+K)。文字を選んでから押すとその文字がリンクになる"><svg class="icon" aria-hidden="true"><use href="#i-link" /></svg>リンク</button>
+        <button id="btn-unlink" title="選択範囲のリンクを解除"><svg class="icon" aria-hidden="true"><use href="#i-unlink" /></svg>リンク解除</button>
+        <button id="btn-image" title="画像ファイルを挿入"><svg class="icon" aria-hidden="true"><use href="#i-image" /></svg>画像</button>
         <span class="toolbar-sep"></span>
-        <button id="btn-link" title="文字にリンクを埋め込む (Ctrl+K)。文字を選んでから押すとその文字がリンクになる">🔗 リンク</button>
-        <button id="btn-unlink" title="選択範囲のリンクを解除">リンク解除</button>
-        <button id="btn-image" title="画像ファイルを挿入">🖼 画像</button>
-        <span class="toolbar-sep"></span>
-        <button id="btn-save" title="保存 (Ctrl+S)">💾 保存</button>
-        <button id="btn-delete" title="このページをごみ箱へ移す">🗑 削除</button>
+        <button id="btn-save" title="保存 (Ctrl+S)"><svg class="icon" aria-hidden="true"><use href="#i-save" /></svg>保存</button>
+        <button id="btn-delete" title="このページをごみ箱へ移す"><svg class="icon" aria-hidden="true"><use href="#i-trash" /></svg>削除</button>
         <span id="save-status"></span>
       </div>
 
@@ -70,7 +118,7 @@
         <div id="trash-banner" hidden>
           <span>このページはごみ箱にあります。</span>
           <button id="btn-banner-restore">元に戻す</button>
-          <button id="btn-banner-delete">完全に削除</button>
+          <button id="btn-banner-delete" class="btn-danger">完全に削除</button>
         </div>
 
         <!-- トップ画像(カバー)。未設定のときは非表示 -->
@@ -83,7 +131,7 @@
         </div>
 
         <div id="page-header">
-          <button id="btn-cover-add" title="ページ上部に大きな画像を追加する">🖼 トップ画像を追加</button>
+          <button id="btn-cover-add" title="ページ上部に大きな画像を追加する"><svg class="icon" aria-hidden="true"><use href="#i-image" /></svg>トップ画像を追加</button>
           <input id="page-title" type="text" placeholder="ページタイトル" />
           <input id="page-subtitle" type="text" placeholder="サブタイトル(1行の説明)" />
           <label id="page-folder-row" title="このページを入れるフォルダ">
@@ -100,7 +148,7 @@
     <!-- 右メイン: 関連マップ(エディタと切り替えて表示) -->
     <section id="map-pane" hidden>
       <div id="map-toolbar">
-        <button id="btn-map-close">← エディタに戻る</button>
+        <button id="btn-map-close"><svg class="icon" aria-hidden="true"><use href="#i-back" /></svg>エディタに戻る</button>
         <button id="btn-map-reset" title="ノードの配置を計算し直す">配置をリセット</button>
         <button id="btn-map-fit" title="全体が収まるように表示">全体表示</button>
         <label class="map-option">
@@ -131,8 +179,8 @@
 
     <div class="whatsnew-footer">
       <span id="whatsnew-progress" hidden></span>
-      <button id="btn-whatsnew-next">次へ</button>
-      <button id="btn-whatsnew-close" hidden>閉じる</button>
+      <button id="btn-whatsnew-next" class="btn-primary">次へ</button>
+      <button id="btn-whatsnew-close" class="btn-primary" hidden>閉じる</button>
     </div>
   </dialog>
 
@@ -151,7 +199,7 @@
 
       <h3>メモを書く</h3>
       <p>
-        左上の <b>「+ 新規ページ」</b> で新しいメモを作ります。
+        左上の <b>「新規ページ」</b> で新しいメモを作ります。
         上の欄にタイトル、その下に本文を書きます。
         タイトルの下の細い欄に一行の説明（サブタイトル）を書いておくと、
         左の一覧に表示されて見分けやすくなります。
@@ -160,7 +208,7 @@
       <h3>メモ同士をつなぐ</h3>
       <ol>
         <li>つなげたい文字をドラッグして選びます</li>
-        <li>上の <b>「🔗 リンク」</b> を押します</li>
+        <li>上の <b>「リンク」</b> を押します</li>
         <li>出てきた一覧から、つなげたいメモをクリックします</li>
       </ol>
       <p>
@@ -170,16 +218,16 @@
       </p>
 
       <h3>Webサイトのリンクを貼る</h3>
-      <p>同じ「🔗 リンク」の画面の下半分で、「表示する文字」と「リンク先URL」を入れて貼り方を選びます。</p>
+      <p>同じ「リンク」の画面の下半分で、「表示する文字」と「リンク先URL」を入れて貼り方を選びます。</p>
       <table class="guide-table">
-        <tr><th>🔗 文字にリンク</th><td>文字が青くなり、クリックするとブラウザで開きます</td></tr>
-        <tr><th>🃏 カード</th><td>サイトのタイトル・説明・画像を自動で取ってきて、カードの形で貼ります</td></tr>
-        <tr><th>📺 動画・埋め込み</th><td>動画のURLなら「動画カード」に、それ以外のページはメモの中に表示します</td></tr>
+        <tr><th>文字にリンク</th><td>文字が青くなり、クリックするとブラウザで開きます</td></tr>
+        <tr><th>カード</th><td>サイトのタイトル・説明・画像を自動で取ってきて、カードの形で貼ります</td></tr>
+        <tr><th>動画・埋め込み</th><td>動画のURLなら「動画カード」に、それ以外のページはメモの中に表示します</td></tr>
       </table>
 
       <h3>動画を貼る</h3>
       <p>
-        YouTubeなどの動画URLを「リンク先URL」に入れて <b>「📺 動画・埋め込み」</b> を押すと、
+        YouTubeなどの動画URLを「リンク先URL」に入れて <b>「動画・埋め込み」</b> を押すと、
         サムネイルと ▶ が付いた <b>動画カード</b> になります。
         クリックすると、その動画がブラウザで開いて再生されます。
       </p>
@@ -202,45 +250,45 @@
       <h3>目次をつける</h3>
       <p>
         長いメモには目次をつけられます。文章を <b>「大見出し」</b> と <b>「小見出し」</b> で
-        区切ってから、目次を置きたい場所で <b>「📑 目次」</b> を押してください。
+        区切ってから、目次を置きたい場所で <b>「目次」</b> を押してください。
         見出しから自動で作られ、あとで見出しを増やしたり書き直したりしても
         自動でついてきます。項目をクリックすると、その場所まで移動します。
       </p>
 
       <h3>画像を入れる</h3>
       <ul>
-        <li>上の <b>「🖼 画像」</b> を押してファイルを選ぶ</li>
+        <li>上の <b>「画像」</b> を押してファイルを選ぶ</li>
         <li>画像をコピーして本文で <b>Ctrl + V</b>（スクリーンショットもそのまま貼れます）</li>
         <li>画像ファイルを本文へドラッグして落とす</li>
       </ul>
 
       <h3>ページの一番上に大きな画像を置く</h3>
       <p>
-        タイトルの上の <b>「🖼 トップ画像を追加」</b> から選びます。
+        タイトルの上の <b>「トップ画像を追加」</b> から選びます。
         置いたあとは画像の上にマウスを乗せると、右下に「画像を変更」「削除」が出ます。
       </p>
 
       <h3>フォルダに分ける</h3>
       <p>
-        一覧の上の <b>「+ フォルダ」</b> でフォルダを作れます。フォルダの中にフォルダも作れます。
+        一覧の上の <b>「フォルダ」</b> でフォルダを作れます。フォルダの中にフォルダも作れます。
         ページやフォルダは、フォルダの見出しへドラッグすると移せます。
         タイトルの下の「フォルダ」欄から選んで移すこともできます。
       </p>
       <ul>
         <li>フォルダの見出しを<b>クリック</b>すると、そのフォルダを選びます。<b>ダブルクリック</b>で開閉します</li>
-        <li>「+ 新規ページ」「+ フォルダ」は、選んでいるフォルダの中に作ります</li>
+        <li>「新規ページ」「フォルダ」は、選んでいるフォルダの中に作ります</li>
         <li>見出しにマウスを乗せると「名前」「×」が出ます。フォルダを消しても、中のページは消えずにひとつ上へ移ります</li>
       </ul>
 
       <h3>ごみ箱</h3>
       <p>
-        <b>「🗑 削除」</b> を押したページは、いったんごみ箱に入ります。
+        <b>「削除」</b> を押したページは、いったんごみ箱に入ります。
         一覧の下の <b>「ごみ箱」</b> から、元に戻したり完全に削除したりできます。
         ごみ箱に入れて<b>30日</b>たったページは、自動で完全に削除されます。
       </p>
 
       <h3>つながりを図で見る</h3>
-      <p>左上の <b>「🗺 関連マップ」</b> を押すと、メモ同士のつながりが図で表示されます。</p>
+      <p>左上の <b>「関連マップ」</b> を押すと、メモ同士のつながりが図で表示されます。</p>
       <ul>
         <li><b>丸</b> がひとつのメモです。クリックするとそのメモが開きます</li>
         <li><b>矢印</b> がリンクの向きです</li>
@@ -253,7 +301,7 @@
       <p>
         左上の検索欄に文字を入れると、タイトルと本文の両方から探します。<br />
         保存は別のメモに移るときに自動で行われます。すぐ保存したいときは
-        <b>「💾 保存」</b> か <b>Ctrl + S</b> です。
+        <b>「保存」</b> か <b>Ctrl + S</b> です。
       </p>
 
       <h3>キーボード操作</h3>
@@ -275,8 +323,8 @@
       <h3>書き出す・画像を整理する</h3>
       <p>画面左下の <b>「データ」</b> ボタンから、次の2つができます。</p>
       <table class="guide-table">
-        <tr><th>📤 メモを書き出す</th><td>すべてのメモを、ブラウザで読める形でフォルダに書き出します。アプリに戻すための元データも一緒に入ります</td></tr>
-        <tr><th>🧹 画像を整理する</th><td>どのメモからも使われていない画像を探して、ごみ箱へ移します。間違えたときはごみ箱から元に戻せます</td></tr>
+        <tr><th>メモを書き出す</th><td>すべてのメモを、ブラウザで読める形でフォルダに書き出します。アプリに戻すための元データも一緒に入ります</td></tr>
+        <tr><th>画像を整理する</th><td>どのメモからも使われていない画像を探して、ごみ箱へ移します。間違えたときはごみ箱から元に戻せます</td></tr>
       </table>
 
       <h3>更新について</h3>
@@ -288,7 +336,7 @@
     </div>
 
     <div class="guide-footer">
-      <button id="btn-guide-ok">閉じる</button>
+      <button id="btn-guide-ok" class="btn-primary">閉じる</button>
     </div>
   </dialog>
 
@@ -301,18 +349,18 @@
       すべてのメモを、ブラウザで読める形でフォルダに書き出します。
       アプリに戻すための元データも一緒に入ります。
     </p>
-    <button id="btn-data-export" class="wide">📤 書き出し先のフォルダを選ぶ</button>
+    <button id="btn-data-export" class="wide"><svg class="icon" aria-hidden="true"><use href="#i-export" /></svg>書き出し先のフォルダを選ぶ</button>
 
     <h4>使っていない画像を整理する</h4>
     <p class="dialog-note">
       どのメモからも使われていない画像(外したトップ画像や、消したカードのサムネイルなど)を探して、
       ごみ箱へ移します。ごみ箱から元に戻せます。
     </p>
-    <button id="btn-data-cleanup" class="wide">🧹 使っていない画像を探す</button>
+    <button id="btn-data-cleanup" class="wide"><svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>使っていない画像を探す</button>
 
     <p id="data-dialog-status"></p>
     <div class="dialog-actions">
-      <button id="btn-data-close">閉じる</button>
+      <button id="btn-data-close" class="btn-primary">閉じる</button>
     </div>
   </dialog>
 
@@ -325,7 +373,7 @@
     </label>
     <div class="dialog-actions">
       <button id="btn-folder-cancel">やめる</button>
-      <button id="btn-folder-ok">作る</button>
+      <button id="btn-folder-ok" class="btn-primary">作る</button>
     </div>
   </dialog>
 
@@ -356,13 +404,13 @@
       />
     </label>
     <p class="dialog-hint">
-      動画のURLを入れて「📺 動画・埋め込み」を押すと、動画カードになります
+      動画のURLを入れて「動画・埋め込み」を押すと、動画カードになります
       （クリックでブラウザ再生）。&lt;iframe …&gt; の埋め込みコードを貼ってもかまいません。
     </p>
     <div class="dialog-row">
-      <button id="btn-link-external" title="文字にリンクを埋め込む。クリックでブラウザが開く">🔗 文字にリンク</button>
-      <button id="btn-link-card" title="タイトル・説明・画像付きのカードとして挿入">🃏 カード</button>
-      <button id="btn-link-embed" title="動画は動画カードに、それ以外のページはメモ内に埋め込んで表示">📺 動画・埋め込み</button>
+      <button id="btn-link-external" title="文字にリンクを埋め込む。クリックでブラウザが開く"><svg class="icon" aria-hidden="true"><use href="#i-link" /></svg><span class="btn-label">文字にリンク</span></button>
+      <button id="btn-link-card" title="タイトル・説明・画像付きのカードとして挿入"><svg class="icon" aria-hidden="true"><use href="#i-card" /></svg>カード</button>
+      <button id="btn-link-embed" title="動画は動画カードに、それ以外のページはメモ内に埋め込んで表示"><svg class="icon" aria-hidden="true"><use href="#i-video" /></svg>動画・埋め込み</button>
     </div>
     <div class="dialog-actions">
       <span id="link-dialog-status"></span>
@@ -374,7 +422,7 @@
   <!-- 自動アップデートの通知バー(画面右下) -->
   <div id="update-banner" hidden>
     <span id="update-message"></span>
-    <button id="btn-update-install" hidden>再起動して更新</button>
+    <button id="btn-update-install" class="btn-primary" hidden>再起動して更新</button>
     <button id="btn-update-dismiss" title="閉じる">×</button>
   </div>
 

@@ -6,6 +6,23 @@
   --accent: #3366cc; /* Wikipedia風のリンク色 */
   --bg-sidebar: #f6f6f9;
   --text: #202122;
+  /* 補足の文字色。白にもサイドバーの薄い灰色にも、
+     コントラスト比 4.5:1 以上で読めるように選んでいる */
+  --text-sub: #555;   /* ボタンの文字など、読ませたい補足 */
+  --text-muted: #666; /* 件数・日付・注記など、一段弱い補足 */
+
+  --accent-hover: #2a55ad;
+  --danger: #b42318;      /* 元に戻せない操作の文字色(白地で約6.5:1) */
+  --bg-hover: #eef1fb;    /* マウスを乗せたとき */
+  --bg-press: #dde4f6;    /* 押している間 */
+
+  /* ボタンの大きさ。並ぶボタンの高さをそろえるため、ここで決めた値だけを使う */
+  --control-h: 32px;      /* 通常のボタン・入力欄 */
+  --control-h-sm: 26px;   /* 一覧の見出しやサイドバー下部の小さなボタン */
+  --radius: 6px;
+
+  /* 本文を読みやすい幅に収める(16pxの文字で1行あたり約45文字) */
+  --content-width: 720px;
 }
 
 * { box-sizing: border-box; }
@@ -21,6 +38,87 @@ body {
   height: 100vh;
 }
 
+/* ---------- アイコン ----------
+   index.html 冒頭の <symbol> を参照して描く線のアイコン。
+   色は周りの文字と同じ(currentColor)なので、文字を薄くすればアイコンも薄くなる */
+
+/* 定義だけの <svg> は画面に出さない */
+.icon-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 塗りつぶす部分(動画アイコンの▶など) */
+.icon .icon-fill { fill: currentColor; stroke: none; }
+/* 太字アイコンは線を太くして「太い」ことを形で見せる */
+.icon .icon-heavy { stroke-width: 2.5; }
+
+/* ---------- ボタン(共通) ----------
+   アプリ内のボタンはすべてこの見た目を基本にする。種類は3つだけ:
+     通常 … 白地に枠線
+     .btn-primary … その画面でいちばん使う操作。アクセント色で塗る(1画面に1つまで)
+     .btn-danger  … 元に戻せない操作。赤い文字にする(目立たせすぎないよう塗りはしない) */
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--control-h);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--text);
+  white-space: nowrap; /* 文字を途中で折り返さない */
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+button:hover:not(:disabled) { background: var(--bg-hover); }
+button:active:not(:disabled) { background: var(--bg-press); } /* 押したことが分かるように */
+button:disabled { opacity: 0.5; cursor: default; }
+button[hidden] { display: none; }
+
+.btn-primary {
+  color: #fff;
+  font-weight: bold;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-primary:active:not(:disabled) { background: #22488f; }
+
+.btn-danger { color: var(--danger); }
+.btn-danger:hover:not(:disabled) { background: #fdf0ee; border-color: #f0b8b0; }
+.btn-danger:active:not(:disabled) { background: #fadcd7; }
+
+/* キーボード(Tab)で移動したときだけ、今いる場所に青い枠を出す。
+   マウスでクリックしたときは出さない(:focus-visible) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 入力欄は枠の内側に沿わせて、クリックしたときも入力中だと分かるようにする */
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
 /* ---------- サイドバー ---------- */
 
 #sidebar {
@@ -33,23 +131,26 @@ body {
 }
 
 .sidebar-header {
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .sidebar-header button {
   width: 100%;
-  padding: 8px;
-  cursor: pointer;
+  min-height: 36px; /* サイドバーでいちばん大きな操作なので一段高くする */
+  font-size: 14px;
 }
 
 #search-input {
-  margin: 0 10px 10px;
-  padding: 6px 8px;
+  height: var(--control-h);
+  margin: 0 12px 12px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius);
 }
 
 #page-list {
@@ -71,8 +172,8 @@ body {
 
 #page-list .snippet {
   display: block;
-  font-size: 12px;
-  color: #666;
+  font-size: 13px;
+  color: var(--text-muted);
   font-weight: normal;
   margin-top: 2px;
 }
@@ -81,35 +182,40 @@ body {
 #list-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px 6px;
+  gap: 4px;
+  padding: 0 12px 8px;
   border-bottom: 1px solid var(--border);
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 #list-title { margin-right: auto; font-weight: bold; }
 
-#list-header button {
-  padding: 2px 8px;
-  font-size: 11px;
-  cursor: pointer;
-  color: #555;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 4px;
+/* 小さなボタン(一覧の見出し、フォルダ・ごみ箱の行、サイドバー下部、トップ画像の追加) */
+#list-header button,
+.folder-actions button,
+.trash-actions button,
+.footer-buttons button,
+#btn-cover-add {
+  min-height: var(--control-h-sm);
+  padding: 0 8px;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-sub);
 }
 
-#list-header button:hover:not(:disabled) { background: #eef1fb; color: var(--text); }
-#list-header button:disabled { opacity: 0.5; cursor: default; }
-#list-header button[hidden] { display: none; }
+#list-header .btn-danger,
+.trash-actions .btn-danger { color: var(--danger); }
+
+#list-header .icon,
+#btn-cover-add .icon { width: 14px; height: 14px; }
 
 /* フォルダの見出し行 */
 #page-list li.folder-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 8px 12px;
   font-size: 13px;
   font-weight: bold;
   color: #444;
@@ -117,9 +223,9 @@ body {
   user-select: none;
 }
 
-#page-list li.folder-row.unfiled { color: #777; font-weight: normal; }
+#page-list li.folder-row.unfiled { color: var(--text-muted); font-weight: normal; }
 #page-list li.folder-row:hover { background: #e4e6ef; }
-/* 選んでいるフォルダ(「+ 新規ページ」「+ フォルダ」の作成先) */
+/* 選んでいるフォルダ(「新規ページ」「フォルダ」の作成先) */
 #page-list li.folder-row.current {
   background: #dfe6f7;
   color: var(--text);
@@ -129,9 +235,10 @@ body {
 /* 開いているかどうかの目印 ▾/▸(開閉は見出しのダブルクリック) */
 .folder-toggle {
   flex-shrink: 0;
-  width: 14px;
+  width: 16px;
+  font-size: 15px;
   text-align: center;
-  color: #888;
+  color: var(--text-sub);
 }
 
 #page-list li.folder-row.drop-target { background: #d6e0f8; outline: 2px dashed var(--accent); }
@@ -144,46 +251,54 @@ body {
   white-space: nowrap;
 }
 
-.folder-count { font-size: 11px; font-weight: normal; color: #999; }
+.folder-count { font-size: 12px; font-weight: normal; color: var(--text-muted); }
 
-/* 見出しの小さなボタンは、マウスを乗せたときだけ出す */
-.folder-actions { display: none; gap: 3px; }
-#page-list li.folder-row:hover .folder-actions { display: flex; }
-
-.folder-actions button,
-.trash-actions button {
-  padding: 1px 6px;
-  font-size: 11px;
-  font-weight: normal;
-  cursor: pointer;
-  color: #555;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 3px;
+/* 見出しの小さなボタン(名前・×)。
+   ふだんは見えないが、マウスを乗せたとき・選んでいるフォルダ・キーボードで
+   ボタンに移ったときは出す。display:none にすると Tab で移れなくなるため、
+   幅を0にして隠す(隠している間は場所を取らないので、件数が右端にそろう) */
+.folder-actions {
+  display: flex;
+  gap: 4px;
+  max-width: 0;
+  margin-left: -8px; /* 行の中の間隔(gap)の分も詰めて、件数を右端の余白にそろえる */
+  overflow: hidden;
+  opacity: 0;
 }
 
-.folder-actions button:hover,
-.trash-actions button:hover { background: #eef1fb; color: var(--text); }
+#page-list li.folder-row:hover .folder-actions,
+#page-list li.folder-row.current .folder-actions,
+.folder-actions:focus-within {
+  max-width: none;
+  margin-left: 0;
+  overflow: visible; /* キーボード操作の青い枠が切れないようにする */
+  opacity: 1;
+}
+
+/* 「未分類」にはボタンが無いので、選んでいても場所を取らない */
+.folder-actions:empty { display: none; }
+
+.folder-actions button { min-height: 22px; padding: 0 6px; font-weight: normal; }
 
 /* ごみ箱の一覧の上に出す説明 */
 #page-list li.list-note {
   cursor: default;
-  font-size: 11px;
-  color: #888;
+  font-size: 12px;
+  color: var(--text-muted);
   line-height: 1.5;
-  padding: 6px 12px;
+  padding: 8px 12px;
   background: transparent;
 }
 
 #page-list li.list-note:hover { background: transparent; }
 
 /* ごみ箱の行 */
-.trash-actions { display: flex; gap: 4px; margin-top: 5px; }
-#page-list li.trash-item { color: #666; }
+.trash-actions { display: flex; gap: 4px; margin-top: 8px; }
+#page-list li.trash-item { color: var(--text-muted); }
 
 #page-list li.list-empty {
   cursor: default;
-  color: #999;
+  color: var(--text-muted);
   font-size: 13px;
   text-align: center;
   padding: 24px 12px;
@@ -192,71 +307,60 @@ body {
 
 #page-list li.list-empty:hover { background: transparent; }
 
-/* 一覧の下の「ごみ箱」ボタン */
+/* 一覧の下の「ごみ箱」ボタン。行として見せるので枠と角丸を付けない */
 #btn-trash {
   flex-shrink: 0;
-  padding: 7px 12px;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-  color: #666;
+  justify-content: flex-start;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--text-sub);
   background: transparent;
   border: none;
   border-top: 1px solid var(--border);
+  border-radius: 0;
 }
 
-#btn-trash::before { content: "🗑 "; }
 #btn-trash:hover { background: #ececf3; color: var(--text); }
 #btn-trash.active { background: #e2e8f8; color: var(--text); font-weight: bold; }
 
-/* サイドバー下部: バージョン表示と更新確認 */
+/* サイドバー下部。1段目にバージョンと「?」、2段目に「データ」「更新を確認」を並べる */
 #sidebar-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 8px 12px 12px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 #app-version {
-  font-size: 11px;
-  color: #888;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
-
-#btn-check-update,
-#btn-data {
-  padding: 3px 8px;
-  font-size: 11px;
-  cursor: pointer;
-  color: #555;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-}
-
-#btn-check-update:hover:not(:disabled),
-#btn-data:hover { background: #eef1fb; color: var(--text); }
-#btn-check-update:disabled { opacity: 0.5; cursor: default; }
 
 .footer-buttons {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
 }
+
+.footer-buttons button { flex: 1; } /* 2つのボタンを同じ幅にする */
 
 /* 使い方ガイドを開く「?」ボタン */
 #btn-guide {
   width: 22px;
   height: 22px;
+  min-height: 0;
   padding: 0;
   font-size: 13px;
   font-weight: bold;
   line-height: 1;
-  cursor: pointer;
   color: #fff;
-  background: #9aa0ad;
+  background: #6b7080; /* 白い「?」が読める濃さにする */
   border: none;
   border-radius: 50%;
 }
@@ -302,48 +406,52 @@ body {
   right: 12px;
   bottom: 12px;
   display: flex;
-  gap: 6px;
+  gap: 8px;
   opacity: 0;
   transition: opacity 0.15s;
 }
 
-#cover-area:hover #cover-actions { opacity: 1; }
+/* マウスを乗せたときに加えて、キーボードでボタンに移ったときも出す */
+#cover-area:hover #cover-actions,
+#cover-actions:focus-within { opacity: 1; }
 
 #cover-actions button {
-  padding: 5px 10px;
-  cursor: pointer;
   border: none;
-  border-radius: 4px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* ---------- ページ見出し ---------- */
+/* ---------- ページ見出しと本文の幅 ----------
+   本文がウィンドウいっぱいに広がると1行が長くなり読みにくいので、
+   見出しと本文を --content-width までに収めて左にそろえる。
+   右側の余白を広げて幅を制限する(背景や区切り線はウィンドウ幅のまま) */
+
+#page-header,
+#editor {
+  padding-left: 24px;
+  padding-right: max(24px, calc(100% - var(--content-width) - 24px));
+}
 
 #page-header {
   display: flex;
   flex-direction: column;
-  padding: 10px 20px 6px;
+  padding-top: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 #btn-cover-add {
   align-self: flex-start;
-  margin-bottom: 6px;
-  padding: 4px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  color: #666;
+  margin-bottom: 8px;
+  color: var(--text-muted);
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 4px;
 }
 
-#btn-cover-add:hover { background: #eef1fb; color: var(--text); }
-#btn-cover-add[hidden] { display: none; }
+#btn-cover-add:hover { color: var(--text); }
 
 #page-title {
+  font: inherit;
   font-size: 26px;
   font-weight: bold;
   border: none;
@@ -351,22 +459,32 @@ body {
   outline: none;
 }
 
+#page-subtitle {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-muted);
+  border: none;
+  padding: 4px 0 8px;
+  outline: none;
+}
+
 /* ページを入れるフォルダの選択欄 */
 #page-folder-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 0 6px;
+  gap: 8px;
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 #page-folder {
+  height: var(--control-h-sm);
+  padding: 0 4px;
+  font: inherit;
   font-size: 12px;
-  padding: 1px 4px;
-  color: #555;
+  color: var(--text-sub);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: #fff;
 }
 
@@ -375,7 +493,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 20px;
+  padding: 8px 24px;
   font-size: 13px;
   color: #7a4b00;
   background: #fff4dc;
@@ -384,21 +502,17 @@ body {
 
 #trash-banner[hidden] { display: none; }
 #trash-banner span { margin-right: auto; }
-#trash-banner button { padding: 3px 10px; font-size: 12px; cursor: pointer; }
+#trash-banner button { min-height: var(--control-h-sm); padding: 0 10px; font-size: 12px; }
 
-#page-subtitle {
-  font-size: 14px;
-  color: #666;
-  border: none;
-  padding: 2px 0 6px;
-  outline: none;
-}
+/* ---------- ツールバー ----------
+   書式 / 挿入 / ページ操作 の3つのまとまりに分ける。
+   ボタンはすべて「アイコン + 文字」で、高さ・余白・アイコンの大きさをそろえる */
 
 #toolbar {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 8px 12px;
+  gap: 4px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--border);
   background: #fbfbfd;
   flex-wrap: nowrap; /* 保存メッセージが出てもボタンを折り返さない */
@@ -407,22 +521,27 @@ body {
 }
 
 #toolbar button {
-  padding: 5px 9px;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: white;
-  white-space: nowrap; /* ボタンの文字を折り返さない */
+  padding: 0 10px 0 8px; /* アイコンの左は文字の右より少し詰めると、見た目の余白がそろう */
   flex-shrink: 0; /* 幅が足りなくてもボタンは縮めない */
 }
 
-#toolbar button:hover { background: #eef1fb; }
+#toolbar .icon { width: 18px; height: 18px; }
 
+/* 削除はごみ箱から戻せるので常に赤くはしないが、
+   マウスを乗せたときは赤くしてほかの操作と区別する */
+#toolbar #btn-delete:hover {
+  color: var(--danger);
+  background: #fdf0ee;
+  border-color: #f0b8b0;
+}
+
+/* まとまりを分ける線 */
 .toolbar-sep {
+  flex-shrink: 0;
   width: 1px;
   height: 20px;
   background: var(--border);
-  margin: 0 2px;
+  margin: 0 8px;
 }
 
 /* 幅が足りないときだけ出る横スクロールバーを細くする */
@@ -437,7 +556,7 @@ body {
   margin-left: auto;
   padding: 0 0 0 12px;
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -448,12 +567,11 @@ body {
   background: #fbfbfd; /* スクロール時にボタンと重ならないよう背景を敷く */
 }
 
-.toolbar-sep { flex-shrink: 0; }
-
 #editor {
   flex: 1;
   min-height: 300px;
-  padding: 20px 24px;
+  padding-top: 24px;
+  padding-bottom: 24px;
   line-height: 1.8;
   outline: none;
 }
@@ -526,7 +644,7 @@ body {
 #editor .toc-empty {
   margin: 0;
   font-size: 13px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* 目次から飛んだ見出しが上端にぴったり付かないよう、少し余白を取る */
@@ -573,7 +691,7 @@ body {
 
 #editor .link-card .card-desc {
   font-size: 13px;
-  color: #555;
+  color: var(--text-sub);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -581,7 +699,7 @@ body {
   -webkit-box-orient: vertical;
 }
 
-#editor .link-card .card-site { font-size: 12px; color: #888; }
+#editor .link-card .card-site { font-size: 12px; color: var(--text-muted); }
 
 #editor .link-card .card-thumb {
   width: 120px;
@@ -676,7 +794,7 @@ body {
   -webkit-box-orient: vertical;
 }
 
-#editor .video-card .video-site { font-size: 12px; color: #888; }
+#editor .video-card .video-site { font-size: 12px; color: var(--text-muted); }
 
 /* ---------- iframe埋め込み(動画以外のページ) ---------- */
 
@@ -699,7 +817,7 @@ body {
   display: inline-block;
   margin-top: 4px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 #editor .embed-open:hover { color: var(--accent); text-decoration: underline; }
@@ -718,25 +836,15 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 20px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--border);
   background: #fbfbfd;
   flex-shrink: 0;
 }
 
-#map-toolbar button {
-  padding: 5px 10px;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: white;
-}
-
-#map-toolbar button:hover { background: #eef1fb; }
-
 .map-option {
   font-size: 13px;
-  color: #555;
+  color: var(--text-sub);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -746,7 +854,7 @@ body {
 #map-info {
   margin-left: auto;
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 #map-canvas-wrap {
@@ -772,35 +880,47 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
+  color: var(--text-muted);
   margin: 0;
 }
 
 #map-empty[hidden] { display: none; }
 
-/* ---------- リンク設定ダイアログ ---------- */
+/* ---------- ダイアログ(共通) ---------- */
 
 dialog {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  width: 420px;
-  padding: 18px;
+  border-radius: 10px;
+  width: 440px;
+  padding: 24px;
 }
 
 dialog::backdrop { background: rgba(0, 0, 0, 0.3); }
 
-dialog h3 { margin-top: 0; }
+dialog h3 { margin: 0 0 12px; font-size: 17px; }
 
 .dialog-note {
   font-size: 13px;
-  color: #666;
-  margin: 6px 0;
+  color: var(--text-muted);
+  margin: 8px 0;
 }
+
+/* ダイアログ内の入力欄。高さをボタンとそろえる */
+#link-page-filter,
+.dialog-field input {
+  height: var(--control-h);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ---------- リンク設定ダイアログ ---------- */
 
 #link-page-filter {
   width: 100%;
-  padding: 6px 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 #link-page-list {
@@ -810,16 +930,16 @@ dialog h3 { margin-top: 0; }
   max-height: 180px;
   overflow-y: auto;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius);
 }
 
 #link-page-list li {
-  padding: 7px 10px;
+  padding: 8px 12px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
 }
 
-#link-page-list li:hover { background: #eef1fb; }
+#link-page-list li:hover { background: var(--bg-hover); }
 
 /* ダイアログ内の入力欄(ラベル付き) */
 .dialog-field[hidden] { display: none; }
@@ -828,71 +948,58 @@ dialog h3 { margin-top: 0; }
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .dialog-field > span {
   flex-shrink: 0;
   width: 92px;
   font-size: 13px;
-  color: #555;
+  color: var(--text-sub);
 }
 
-.dialog-field input {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-}
+.dialog-field input { flex: 1; min-width: 0; }
 
 .dialog-hint {
   margin: 0 0 8px;
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
-#btn-link-remove {
-  padding: 5px 10px;
-  cursor: pointer;
-}
+/* 3つの貼り方のボタンは同じ幅で並べる */
+.dialog-row { display: flex; gap: 8px; }
+.dialog-row button { flex: 1; padding: 0 4px; gap: 4px; }
 
-#btn-link-remove[hidden] { display: none; }
-
-.dialog-row { display: flex; gap: 6px; }
-.dialog-row input { flex: 1; padding: 6px 8px; }
-.dialog-row button { flex: 1; padding: 7px 4px; cursor: pointer; }
-
+/* ダイアログ下端のボタン。決定の操作(.btn-primary)を右端に置く */
 .dialog-actions {
-  margin-top: 12px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
-#link-dialog-status { font-size: 12px; color: #888; }
+#link-dialog-status { font-size: 12px; color: var(--text-muted); }
 
-button.wide { width: 100%; padding: 7px; cursor: pointer; }
+.wide { width: 100%; }
 
 /* ---------- データの管理 ---------- */
 
 #data-dialog h4 {
-  margin: 16px 0 2px;
+  margin: 16px 0 4px;
   font-size: 14px;
 }
 
 #data-dialog-status {
   margin: 12px 0 0;
   font-size: 12px;
-  color: #555;
+  color: var(--text-sub);
   white-space: pre-line; /* 書き出し先のパスを改行して見せる */
   word-break: break-all;
 }
 
 #data-dialog-status:empty { display: none; }
-
-#btn-data-close { padding: 5px 14px; cursor: pointer; }
 
 /* ---------- 自動アップデートの通知バー ---------- */
 
@@ -903,10 +1010,10 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
   z-index: 50;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fff;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
   font-size: 13px;
@@ -914,32 +1021,21 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
 
 #update-banner[hidden] { display: none; }
 
-#update-banner button {
-  padding: 5px 10px;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: white;
-}
-
-#update-banner #btn-update-install {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-
-#update-banner #btn-update-install:hover { background: #2a55ad; }
-
-#btn-update-install[hidden] { display: none; }
-
-#update-banner #btn-update-dismiss {
-  border: none;
-  background: transparent;
-  color: #888;
-  font-size: 15px;
+/* 閉じる「×」は枠のない小さなボタンにする(通知・ガイド共通) */
+#btn-update-dismiss,
+#btn-guide-close {
+  min-height: 28px;
+  min-width: 28px;
+  padding: 0;
+  font-size: 18px;
   line-height: 1;
-  padding: 4px 6px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
 }
+
+#btn-update-dismiss:hover,
+#btn-guide-close:hover { color: var(--text); }
 
 /* ---------- 使い方ガイド ---------- */
 
@@ -964,7 +1060,7 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 12px 16px 12px 24px;
   border-bottom: 1px solid var(--border);
   background: #fbfbfd;
   flex-shrink: 0;
@@ -975,21 +1071,9 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
   font-size: 18px;
 }
 
-#btn-guide-close {
-  border: none;
-  background: transparent;
-  color: #888;
-  font-size: 20px;
-  line-height: 1;
-  padding: 2px 6px;
-  cursor: pointer;
-}
-
-#btn-guide-close:hover { color: var(--text); }
-
 .guide-body {
   overflow-y: auto;
-  padding: 4px 22px 18px;
+  padding: 4px 24px 24px;
   line-height: 1.8;
 }
 
@@ -1041,26 +1125,16 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
 /* ガイド内の補足。本文より一段弱く見せる */
 .guide-note {
   font-size: 13px;
-  color: #666;
+  color: var(--text-muted);
   margin: 4px 0 0;
 }
 
 .guide-footer {
-  padding: 12px 20px;
+  padding: 12px 24px;
   border-top: 1px solid var(--border);
   text-align: right;
   flex-shrink: 0;
 }
-
-#btn-guide-ok {
-  padding: 6px 18px;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: white;
-}
-
-#btn-guide-ok:hover { background: #eef1fb; }
 
 /* ---------- 更新内容のお知らせ ---------- */
 
@@ -1076,14 +1150,14 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 16px 20px 12px;
+  padding: 16px 24px 12px;
   border-bottom: 1px solid var(--border);
   background: #fbfbfd;
 }
 
 .whatsnew-badge {
   padding: 2px 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: #fff;
   background: var(--accent);
   border-radius: 10px;
@@ -1096,16 +1170,16 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
 
 #whatsnew-date {
   margin-left: auto;
-  font-size: 11px;
-  color: #888;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.whatsnew-body { padding: 14px 20px 18px; }
+.whatsnew-body { padding: 16px 24px 24px; }
 
 .whatsnew-lead {
   margin: 0 0 8px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 #whatsnew-list {
@@ -1120,30 +1194,20 @@ button.wide { width: 100%; padding: 7px; cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 12px 20px;
+  gap: 8px;
+  padding: 12px 24px;
   border-top: 1px solid var(--border);
 }
 
 #whatsnew-progress {
   margin-right: auto;
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 #whatsnew-progress[hidden] { display: none; }
 
-.whatsnew-footer button {
-  padding: 6px 18px;
-  cursor: pointer;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  background: var(--accent);
-  color: #fff;
-}
-
-.whatsnew-footer button:hover { background: #2a55ad; }
-.whatsnew-footer button[hidden] { display: none; }
+.whatsnew-footer button { padding: 0 20px; }
 
 /* ダイアログを閉じた直後に描画をやり直させるための指定。
    見た目はほぼ変わらないが、画面全体を描き直させる効果がある

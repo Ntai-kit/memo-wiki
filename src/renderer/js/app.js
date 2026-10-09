@@ -60,7 +60,7 @@ async function openPage(pageId) {
   titleInput.value = page.title;
   cover.setPage({ cover: page.cover, subtitle: page.subtitle });
   folders.setSelected(page.folderId);
-  pages.setCurrentFolder(page.folderId); // 「+ 新規ページ」などはこのページのフォルダに作る
+  pages.setCurrentFolder(page.folderId); // 「新規ページ」などはこのページのフォルダに作る
   trashBanner.hidden = !page.trashedAt;
   editor.setHTML(page.html);
   toc.refresh(); // 保存されていた目次を最新の見出しで作り直す

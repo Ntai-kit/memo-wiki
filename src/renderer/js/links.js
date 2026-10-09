@@ -21,8 +21,8 @@
  * どちらも同じダイアログで扱い、ダイアログの見た目だけを切り替える。
  *
  * 文字にリンクを埋め込む方法は3通りあり、いずれも記法の入力は不要:
- *   1. 文字を選択してから「🔗 リンク」(選択した文字が表示文字になる)
- *   2. 何も選択せずに「🔗 リンク」→ ダイアログで表示文字とURLを入力
+ *   1. 文字を選択してから「リンク」(選択した文字が表示文字になる)
+ *   2. 何も選択せずに「リンク」→ ダイアログで表示文字とURLを入力
  *   3. Ctrl+K でダイアログを開く
  *
  * リンクのHTML表現:
@@ -46,6 +46,8 @@ const statusEl = document.getElementById('link-dialog-status');
 const removeBtn = document.getElementById('btn-link-remove');
 const dialogTitle = document.getElementById('link-dialog-title');
 const externalBtn = document.getElementById('btn-link-external');
+// ボタンの文字だけを書き換える(ボタン全体を書き換えるとアイコンまで消えるため)
+const externalLabel = externalBtn.querySelector('.btn-label');
 
 const textField = document.getElementById('link-text-field');
 
@@ -160,19 +162,19 @@ function applyDialogMode() {
     dialogTitle.textContent = blockLabel(editingBlock);
     urlInput.value = blockUrl(editingBlock);
     textInput.value = '';
-    externalBtn.textContent = '🔗 文字リンクに変更';
+    externalLabel.textContent = '文字リンクに変更';
     removeBtn.textContent = '削除';
   } else if (editingAnchor) {
     dialogTitle.textContent = 'リンクを編集';
     textInput.value = editingAnchor.textContent;
     urlInput.value = editingAnchor.getAttribute('href') || '';
-    externalBtn.textContent = '🔗 更新';
+    externalLabel.textContent = '更新';
     removeBtn.textContent = 'リンクを解除';
   } else {
     dialogTitle.textContent = 'リンクを設定';
     textInput.value = selectedText; // 選択していた文字を初期値にする
     urlInput.value = '';
-    externalBtn.textContent = '🔗 文字にリンク';
+    externalLabel.textContent = '文字にリンク';
     removeBtn.textContent = 'リンクを解除';
   }
 

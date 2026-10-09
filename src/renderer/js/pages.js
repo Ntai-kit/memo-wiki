@@ -22,6 +22,8 @@ const newFolderBtn = document.getElementById('btn-new-folder');
 const emptyTrashBtn = document.getElementById('btn-empty-trash');
 const backBtn = document.getElementById('btn-trash-back');
 const trashBtn = document.getElementById('btn-trash');
+// 件数は文字の部分だけに書く(ボタン全体を書き換えるとアイコンまで消えるため)
+const trashLabel = trashBtn.querySelector('.btn-label');
 
 /** 閉じているフォルダを覚えておく場所(この端末の中だけの表示の好み) */
 const COLLAPSED_KEY = 'memo-wiki.collapsedFolders';
@@ -40,7 +42,7 @@ let folderList = [];    // 最後に描画したときのフォルダ一覧(ド�
 let trashDays = 30;     // ごみ箱のページが自動で削除されるまでの日数(main から受け取る)
 /**
  * いま選んでいるフォルダ(空なら未分類 = 一番上の階層)。
- * 「+ 新規ページ」「+ フォルダ」はこのフォルダの中に作る。
+ * 「新規ページ」「フォルダ」はこのフォルダの中に作る。
  * フォルダの見出しをクリックするか、ページを開くと、そのフォルダに切り替わる。
  */
 let currentFolderId = '';
@@ -131,7 +133,7 @@ function setMode(next) {
 /** 下部の「ごみ箱」ボタンに件数を出す */
 async function updateTrashCount() {
   const count = (await api.listTrash()).length;
-  trashBtn.textContent = count > 0 ? `ごみ箱 ${count}` : 'ごみ箱';
+  trashLabel.textContent = count > 0 ? `ごみ箱 ${count}` : 'ごみ箱';
   emptyTrashBtn.disabled = count === 0;
 }
 
@@ -372,9 +374,11 @@ function renderTrash(items) {
     const actions = document.createElement('span');
     actions.className = 'trash-actions';
     actions.appendChild(actionButton('元に戻す', 'ページ一覧に戻す', () => handlers.restore(item.id)));
-    actions.appendChild(actionButton('完全に削除', '元に戻せなくなります', () =>
+    const deleteBtn = actionButton('完全に削除', '元に戻せなくなります', () =>
       handlers.deleteForever(item.id)
-    ));
+    );
+    deleteBtn.classList.add('btn-danger'); // 元に戻せない操作なので赤い文字にする
+    actions.appendChild(deleteBtn);
     li.appendChild(actions);
     listEl.appendChild(li);
   }
