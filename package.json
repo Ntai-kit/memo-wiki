@@ -1,6 +1,6 @@
 {
   "name": "memo-wiki",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "リンクと画像をクリック操作で扱えるWiki風メモアプリ",
   "author": "Nez",
   "license": "GPL-3.0-or-later",
