@@ -14,6 +14,7 @@
  * その準備は app.js から prepare コールバックとして受け取る。
  */
 import * as api from './api.js';
+import * as confirmDialog from './confirm.js';
 
 const dialog = document.getElementById('data-dialog');
 const statusEl = document.getElementById('data-dialog-status');
@@ -67,10 +68,13 @@ async function cleanUnusedImages() {
       return;
     }
 
-    const ok = confirm(
-      `使っていない画像が ${found.count} 件(${formatBytes(found.bytes)})見つかりました。\n` +
-        'ごみ箱へ移しますか? (ごみ箱から元に戻せます)'
-    );
+    const ok = await confirmDialog.ask({
+      title: '使っていない画像の整理',
+      message:
+        `使っていない画像が ${found.count} 件(${formatBytes(found.bytes)})見つかりました。\n` +
+        'ごみ箱へ移しますか? (ごみ箱から元に戻せます)',
+      okLabel: 'ごみ箱へ移す',
+    });
     if (!ok) {
       setStatus('');
       return;

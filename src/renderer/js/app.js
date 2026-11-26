@@ -29,6 +29,7 @@ import * as toc from './toc.js';
 import * as videos from './videos.js';
 import * as datatools from './datatools.js';
 import * as folders from './folders.js';
+import * as confirmDialog from './confirm.js';
 
 const titleInput = document.getElementById('page-title');
 const saveStatus = document.getElementById('save-status');
@@ -150,7 +151,12 @@ async function restorePage(pageId) {
 async function deleteForever(pageId) {
   const page = await api.loadPage(pageId);
   const title = page ? page.title : '';
-  const ok = confirm(`「${title}」を完全に削除しますか?\nこの操作は元に戻せません。`);
+  const ok = await confirmDialog.ask({
+    title: 'ページを完全に削除',
+    message: `「${title}」を完全に削除しますか?\nこの操作は元に戻せません。`,
+    okLabel: '完全に削除',
+    danger: true,
+  });
   if (!ok) return;
   await api.deletePage(pageId);
   if (pageId === currentPageId) clearEditor();
@@ -162,7 +168,12 @@ async function deleteForever(pageId) {
 async function emptyTrash() {
   const trashed = await api.listTrash();
   if (trashed.length === 0) return;
-  const ok = confirm(`ごみ箱の${trashed.length}ページを完全に削除しますか?\nこの操作は元に戻せません。`);
+  const ok = await confirmDialog.ask({
+    title: 'ごみ箱を空にする',
+    message: `ごみ箱の${trashed.length}ページを完全に削除しますか?\nこの操作は元に戻せません。`,
+    okLabel: '完全に削除',
+    danger: true,
+  });
   if (!ok) return;
   const openIsTrashed = trashed.some((p) => p.id === currentPageId);
   await api.emptyTrash();

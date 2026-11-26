@@ -982,6 +982,14 @@ dialog h3 { margin: 0 0 12px; font-size: 17px; }
 
 #link-dialog-status { font-size: 12px; color: var(--text-muted); }
 
+#confirm-dialog { max-width: 420px; }
+#confirm-dialog-message {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-line; /* 本文の \n で改行する */
+  word-break: break-word;
+}
+
 .wide { width: 100%; }
 
 /* ---------- データの管理 ---------- */

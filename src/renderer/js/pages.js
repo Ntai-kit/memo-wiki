@@ -15,6 +15,7 @@
  */
 import * as api from './api.js';
 import * as folders from './folders.js';
+import * as confirmDialog from './confirm.js';
 
 const listEl = document.getElementById('page-list');
 const listTitle = document.getElementById('list-title');
@@ -334,9 +335,11 @@ async function renameFolder(folder) {
 async function deleteFolder(folder) {
   const parent = folderList.find((f) => f.id === folder.parentId);
   const destination = parent ? `「${parent.name}」` : '「未分類」と一番上の階層';
-  const ok = confirm(
-    `フォルダ「${folder.name}」を削除しますか?\n中のページとフォルダは消えずに${destination}へ移ります。`
-  );
+  const ok = await confirmDialog.ask({
+    title: 'フォルダを削除',
+    message: `フォルダ「${folder.name}」を削除しますか?\n中のページとフォルダは消えずに${destination}へ移ります。`,
+    okLabel: '削除',
+  });
   if (!ok) return;
   await api.deleteFolder(folder.id);
   if (currentFolderId === folder.id) currentFolderId = folder.parentId || ''; // 中身の移り先を選ぶ
